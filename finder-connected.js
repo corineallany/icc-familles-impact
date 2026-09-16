@@ -1,0 +1,4 @@
+/* FI Sarthe connectée : solution en ligne lorsque la proximité physique n'est pas pertinente. */
+function connectedFamily(){return db.families.find(f=>f.is_online&&f.status==='Active')}
+function connectedSuggestionCard(){const f=connectedFamily();if(!f)return '';return `<div class="card connected-fi-card clickable" onclick="familySpace(${f.id})"><span class="pill fi">EN LIGNE</span><h3>${esc(f.name)}</h3><p>Une FI aux mêmes jours et horaires, pensée notamment pour les personnes qui habitent autour du Mans ou dans une zone où aucune FI de proximité n’est adaptée.</p><small class="muted">Elle reste une suggestion complémentaire : une FI physique réellement proche reste prioritaire lorsqu’elle existe.</small></div>`}
+const _finderConnected=finderPage;finderPage=function(){return _finderConnected()+connectedSuggestionCard()};
