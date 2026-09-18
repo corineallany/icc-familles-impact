@@ -19,3 +19,18 @@
 
 /* v192 — garde les fiches validées, corrige seulement densité/alignement */
 input[type="checkbox"],input[type="radio"]{width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;padding:0!important;flex:0 0 16px!important}.check-row{display:flex!important;align-items:center!important;gap:18px!important}.check-row label{display:flex!important;align-items:center!important;gap:7px!important;margin:0!important}.agenda-row-v192,.program-row-v183{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}.agenda-row-main-v192,.program-row-main-v183{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1;min-width:0}.agenda-inline-actions-v192,.program-inline-actions-v183{flex:0 0 auto}.reporting-sheet .form-row{align-items:start!important}.reporting-sheet label{min-width:0}@media(max-width:760px){.agenda-row-v192,.program-row-v183{align-items:flex-start!important;flex-direction:column}.agenda-inline-actions-v192,.program-inline-actions-v183{width:100%;overflow-x:auto}}
+
+/* v198 — navigation mobile stable et formulaires propres */
+@media(max-width:760px){
+ #workspace main header{position:relative!important;display:block!important;padding-right:72px!important;min-height:118px!important}
+ #workspace main header .header-actions{position:absolute!important;right:16px!important;top:18px!important;display:flex!important;gap:8px!important}
+ #fiBackBtn{position:static!important;margin:0!important;width:44px!important;height:44px!important}
+ #workspace main header h1{margin-top:8px!important;line-height:1.08!important}
+ .program-form-v2 .form-row{grid-template-columns:1fr 1fr!important;gap:12px!important}
+ .program-form-v2 .program-day-row{padding:14px!important}
+}
+.program-multi-toggle{display:flex!important;align-items:flex-start!important;gap:10px!important;padding:14px 16px!important;border:1px solid var(--line,#dde3ec)!important;border-radius:14px!important;background:#fafbfc!important}
+.program-multi-toggle span{display:flex;flex-direction:column;gap:3px}.program-multi-toggle small{font-weight:400;color:var(--muted,#7b879d)}
+.program-days-intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:16px 0 8px}
+.program-day-shortcuts{margin-top:8px}.program-day-shortcuts button:disabled{opacity:.45}
+.pilot-head-compact-v198 .compact-filters-v180{margin-top:14px}
