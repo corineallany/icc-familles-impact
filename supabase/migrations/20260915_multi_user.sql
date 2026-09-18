@@ -51,3 +51,39 @@ grant execute on function public.can_access_family(bigint) to authenticated;
 -- v199: modifications ponctuelles globales des rencontres, sans altérer le modèle hebdomadaire
 alter table public.schedule_changes add column if not exists new_title text;
 alter table public.schedule_changes add column if not exists new_theme text;
+
+
+-- v203: notifications/push consolidés + suppression Direction
+alter table public.schedule_changes add column if not exists new_theme_description text;
+alter table public.reporting drop constraint if exists reporting_meeting_id_fkey;
+alter table public.reporting add constraint reporting_meeting_id_fkey foreign key(meeting_id) references public.meetings(id) on delete cascade;
+drop policy if exists meetings_direction_delete on public.meetings;
+create policy meetings_direction_delete on public.meetings for delete to authenticated using (public.is_direction());
+
+-- Les clés de préférences sont les clés du catalogue, jamais des libellés UI.
+create or replace function public.notify_family_leaders() returns trigger language plpgsql security definer set search_path='public' as $$
+declare fid bigint; mid bigint; ttl text; bdy text; cat text; mod text; tid bigint; act text; ded text;
+begin
+ if tg_table_name='meetings' then fid:=new.family_id;cat:='meeting.changed';mod:='Rencontres';tid:=new.id;act:='open_meeting';ttl:=case when new.status='cancelled' then 'Rencontre annulée' when new.status='postponed' then 'Rencontre reportée' else 'Rencontre mise à jour' end;bdy:=coalesce(new.title,'Rencontre')||' · '||new.scheduled_date::text;
+ elsif tg_table_name='reporting' then select family_id into fid from public.meetings where id=new.meeting_id;cat:='reporting.expected';mod:='Reporting';tid:=new.meeting_id;act:='open_reporting';ttl:='Reporting mis à jour';bdy:='Le Reporting de la rencontre a été mis à jour.';
+ elsif tg_table_name='family_member_roles' then fid:=new.family_id;cat:='member.changed';mod:='FI & FIJ';tid:=new.family_id;act:=null;ttl:='Rôle FI/FIJ mis à jour';bdy:='Rôle local : '||new.role_name;
+ else return new; end if;
+ if fid is null then return new; end if;
+ for mid in select distinct r.member_id from public.role_assignments r where r.family_id=fid and r.active and r.role in ('pilote','copilote') loop
+   ded:=cat||':'||tg_table_name||':'||coalesce(tid,0)||':'||mid||':'||extract(epoch from date_trunc('minute',now()))::bigint;
+   perform public.queue_notification(mid,fid,cat,ttl,bdy,mod,tid,'normal',act,'{}'::jsonb,ded);
+ end loop; return new;
+end $$;
+
+create or replace function public.notify_program_change() returns trigger language plpgsql security definer set search_path='public' as $$
+declare mid bigint; fam record; ttl text;
+begin
+ ttl:=case when new.status='cancelled' then 'Programme annulé' when new.status='postponed' then 'Programme reporté' else 'Programme mis à jour' end;
+ for fam in select f.id from families f where (coalesce(new.target_scope,'ALL_FAMILIES')='SELECTED' and exists(select 1 from program_family_targets t where t.program_id=new.id and t.family_id=f.id)) or (coalesce(new.target_scope,'ALL_FAMILIES')<>'SELECTED' and ((new.include_fi and f.family_type='FI') or (new.include_fij and f.family_type='FIJ'))) loop
+  for mid in select distinct member_id from role_assignments where family_id=fam.id and active and role in('pilote','copilote') loop
+   perform queue_notification(mid,fam.id,case when coalesce(new.kind,'') ilike '%prière%' then 'prayer.changed' else 'program.changed' end,ttl,coalesce(new.title,'Programme')||' · '||new.scheduled_date::text,'Programmes & événements',new.id,'normal',null,'{}'::jsonb,'program-change:'||new.id||':'||mid||':'||extract(epoch from date_trunc('minute',now()))::bigint);
+  end loop;
+ end loop; return new;
+end $$;
+drop trigger if exists trg_notify_program_change on public.programs;
+create trigger trg_notify_program_change after insert or update of scheduled_date,end_date,status,title on public.programs for each row execute function public.notify_program_change();
