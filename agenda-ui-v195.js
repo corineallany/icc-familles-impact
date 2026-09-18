@@ -42,9 +42,11 @@ async function occurrenceActionV195(tid,date,fid,action){
   if(action==='edit'&&typeof editMeetingOccurrenceV7==='function')return editMeetingOccurrenceV7(m.id);
   openScheduleChangeSheetV195('meeting',m.id,action);
 }
+async function deleteMeetingV203(id){if(!isDirection())return;const m=db.meetings.find(x=>+x.id===+id);if(!m)return;if(!confirm('Supprimer définitivement cette rencontre et toutes les données qui lui sont rattachées ? Cette action est irréversible.'))return;const q=await sb.from('meetings').delete().eq('id',id);if(q.error)return alert('Suppression impossible : '+q.error.message);await loadData();render()}
+async function deleteProgramV203(id){if(!isDirection())return;const p=db.programs.find(x=>+x.id===+id);if(!p)return;if(!confirm('Supprimer définitivement ce programme et toutes les données qui lui sont rattachées ? Cette action est irréversible.'))return;const q=await sb.from('programs').delete().eq('id',id);if(q.error)return alert('Suppression impossible : '+q.error.message);await loadData();render()}
 function meetingActionsV195(m){
   const can=isDirection()||(typeof canManageOccurrenceV7==='function'&&canManageOccurrenceV7(m));if(!can)return'';
-  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();'+(typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button></div>';
+  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();'+(typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button>'+(isDirection()?'<button class="ghost danger" onclick="event.stopPropagation();deleteMeetingV203('+m.id+')">Supprimer</button>':'')+'</div>';
 }
 function virtualActionsV195(o,fid){
   if(!isDirection()&&typeof canActionV6==='function'&&!canActionV6(o.type==='FIJ'?'meetings.fij.manage':'meetings.fi.manage',fid))return'';
@@ -52,7 +54,7 @@ function virtualActionsV195(o,fid){
 }
 function programActionsV195(p){
   if(!isDirection())return'';
-  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();editProgramV193('+p.id+')">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'cancelled\')">Annuler</button></div>';
+  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();editProgramV193('+p.id+')">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'cancelled\')">Annuler</button><button class="ghost danger" onclick="event.stopPropagation();deleteProgramV203('+p.id+')">Supprimer</button></div>';
 }
 function setAgendaMeetingPhase(v){agendaMeetingPhase=v;render()} function setAgendaMeetingPeriod(v){agendaMeetingPeriod=v;render()} function setAgendaMeetingKind(v){agendaMeetingKind=v;render()}
 function meetingsPage(){
