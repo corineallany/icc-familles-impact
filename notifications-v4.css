@@ -7,3 +7,12 @@
 .notification-copy-v5{min-width:0}.notification-copy-v5 b{font-size:13px}.notification-copy-v5 p{font-size:12px;color:#68738a;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.notification-copy-v5 small{font-size:10px;color:#8a93a5}.notification-actions-v5{display:flex;gap:4px}.notification-actions-v5 button{border:0;background:transparent;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px}.notification-actions-v5 button:hover{background:#e9edf5}.notification-actions-v5 .danger:hover{background:#fff0f0}.notification-empty-v5{text-align:center;color:#7b8498;padding:28px 10px}
 .notification-detail-v5{width:min(620px,calc(100vw - 32px));max-width:620px}.notification-detail-body-v5{padding:16px 0;line-height:1.6}.notification-center-button-v5{position:relative}.notification-center-button-v5>span{position:absolute;top:-5px;right:-6px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#c62828;color:white;font-size:10px;display:grid;place-items:center}
 @media(max-width:700px){.notification-center-v5{width:calc(100vw - 18px);max-height:92vh}.notification-row-v5{padding:10px 4px}.notification-actions-v5 button{width:30px;height:30px}.notification-tabs-v5{padding-right:4px}}
+
+
+/* v179 — centre volontairement petit, presque carré */
+.notification-center-v5{width:min(430px,calc(100vw - 28px))!important;max-width:430px!important;height:min(520px,82vh);max-height:520px!important;border-radius:24px!important;padding:24px!important}
+.notification-detail-v5{width:min(430px,calc(100vw - 28px))!important;max-width:430px!important;border-radius:24px!important}
+.notification-tabs-v5{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible!important;gap:6px!important}
+.notification-tabs-v5 button{padding:7px 5px!important;font-size:11px!important}
+.notification-list-v5{margin-top:4px}
+@media(max-width:520px){.notification-center-v5{width:calc(100vw - 20px)!important;height:min(540px,88vh);padding:20px!important}.notification-tabs-v5{grid-template-columns:repeat(2,minmax(0,1fr))}}
