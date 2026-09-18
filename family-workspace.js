@@ -4,7 +4,8 @@ async function loadFamilyExtra(){const [f,s]=await Promise.all([sb.from('family_
 const _loadDataFamily=loadData;loadData=async function(){await _loadDataFamily();await loadFamilyExtra()};
 function familyRoles(fid){return (allRoles||[]).filter(r=>+r.family_id===+fid&&r.active)}
 function canWorkFamily(fid){return isDirection()||familyRoles(fid).some(r=>+r.member_id===+profile?.member?.id&&['pilote','copilote'].includes(r.role))}
-function familyMembers(fid){const ids=db.assignments.filter(a=>+a.family_id===+fid&&!a.ends_at).map(a=>+a.member_id);return db.members.filter(m=>ids.includes(+m.id))}
+function familyMemberRank(fid,m){const rs=allRoles.filter(r=>+r.family_id===+fid&&+r.member_id===+m.id&&r.active!==false);if(rs.some(r=>r.role==='pilote'))return 0;const co=rs.filter(r=>r.role==='copilote').sort((a,b)=>(a.copilot_slot||9)-(b.copilot_slot||9))[0];return co?10+(co.copilot_slot||9):100}
+function familyMembers(fid){const ids=db.assignments.filter(a=>+a.family_id===+fid&&!a.ends_at).map(a=>+a.member_id);return db.members.filter(m=>ids.includes(+m.id)).sort((a,b)=>familyMemberRank(fid,a)-familyMemberRank(fid,b)||memberName(a.id).localeCompare(memberName(b.id),'fr',{sensitivity:'base'}))}
 function familyMeetings(fid){return db.meetings.filter(m=>+m.family_id===+fid).sort((a,b)=>(b.scheduled_date||'').localeCompare(a.scheduled_date||''))}
 function meetingEnd(m){return m.planned_end?new Date(m.planned_end):new Date((m.scheduled_date||dateISO(new Date()))+'T23:59:59')}
 function meetingStart(m){return m.planned_start?new Date(m.planned_start):new Date((m.scheduled_date||dateISO(new Date()))+'T00:00:00')}
