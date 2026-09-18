@@ -44,7 +44,7 @@ async function occurrenceActionV195(tid,date,fid,action){
 }
 function meetingActionsV195(m){
   const can=isDirection()||(typeof canManageOccurrenceV7==='function'&&canManageOccurrenceV7(m));if(!can)return'';
-  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();'+(m.template_id&&typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button></div>';
+  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();'+(typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button></div>';
 }
 function virtualActionsV195(o,fid){
   if(!isDirection()&&typeof canActionV6==='function'&&!canActionV6(o.type==='FIJ'?'meetings.fij.manage':'meetings.fi.manage',fid))return'';
