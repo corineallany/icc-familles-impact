@@ -26,3 +26,11 @@ reportingPage=function(){const reports=db.reports||[];const meetings=db.meetings
 if(realtimeChannel){try{sb.removeChannel(realtimeChannel);}catch{}realtimeChannel=null;}
 subscribeRealtime=function(){if(realtimeChannel)return;realtimeChannel=sb.channel('fi-live-v2');['families','members','member_assignments','meetings','programs','reporting','meeting_templates','meeting_template_versions','calendar_pauses','program_days','schedule_changes','app_settings','role_assignments','attendance','program_family_targets'].forEach(table=>realtimeChannel.on('postgres_changes',{event:'*',schema:'public',table},async()=>{await loadData();render();}));realtimeChannel.subscribe();};
 setTimeout(async()=>{if(session){try{await loadData();render();subscribeRealtime();}catch(e){console.error(e);}}},500);
+/* v214 — fiche de présences en consultation, édition seulement selon les droits */
+function openAttendanceReadV214(kind,id,familyId=null){
+ const item=kind==='meeting'?db.meetings.find(x=>+x.id===+id):db.programs.find(x=>+x.id===+id);
+ if(!item)return;
+ const rows=(db.attendance||[]).filter(a=>+a[kind+'_id']===+id&&a.present&&(!familyId||+a.family_id===+familyId));
+ const fid=familyId||item.family_id||null,canEdit=isDirection()||(fid&&canManageAttendanceFamily(fid));
+ modal.innerHTML='<div class="modal-card wide reporting-sheet"><button class="close" onclick="closeModal()">×</button><p class="eyebrow">FICHE DE PRÉSENCES</p><h2>'+esc(item.title||'Présences')+'</h2><p class="muted">'+(fid?esc(familyName(fid))+' · ':'')+esc(item.scheduled_date||'')+'</p><div class="card metric"><span>Présences enregistrées</span><strong>'+rows.length+'</strong></div><div class="report-section">'+(rows.length?rows.map(a=>'<div class="family-row"><b>'+esc(memberName(a.member_id))+'</b><span>'+(a.arrival_unknown?'Heure non connue':esc(String(a.arrival_time||'').slice(0,5)||'Présent'))+'</span></div>').join(''):'<p class="muted">Aucune présence enregistrée.</p>')+'</div><div class="row-actions">'+(canEdit?'<button class="primary" onclick="openAttendance(\''+kind+'\','+id+')">Modifier les présences</button>':'')+(kind==='meeting'?'<button class="ghost" onclick="openMeetingDetailV9('+id+')">Voir la rencontre</button>':'<button class="ghost" onclick="openProgramDetailV9('+id+')">Voir le programme</button>')+'</div></div>';modal.classList.remove('hidden')
+}
