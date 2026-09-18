@@ -46,3 +46,8 @@ grant execute on function public.can_access_family(bigint) to authenticated;
 
 -- Automatic account linking is intentionally driven by the member record and role assignments,
 -- not by a public client choosing its own role. Auth trigger/RPC can be added after member role columns are normalized.
+
+
+-- v199: modifications ponctuelles globales des rencontres, sans altérer le modèle hebdomadaire
+alter table public.schedule_changes add column if not exists new_title text;
+alter table public.schedule_changes add column if not exists new_theme text;
