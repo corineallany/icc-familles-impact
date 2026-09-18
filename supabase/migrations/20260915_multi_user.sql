@@ -87,3 +87,9 @@ begin
 end $$;
 drop trigger if exists trg_notify_program_change on public.programs;
 create trigger trg_notify_program_change after insert or update of scheduled_date,end_date,status,title on public.programs for each row execute function public.notify_program_change();
+
+revoke execute on function public.notify_program_change() from public,anon,authenticated;
+revoke execute on function public.notify_family_leaders() from public,anon,authenticated;
+revoke execute on function public.notify_reporting_followup_direction() from public,anon,authenticated;
+revoke execute on function public.queue_push_dispatch_for_notification() from public,anon,authenticated;
+revoke execute on function public.apply_notification_preference() from public,anon,authenticated;
