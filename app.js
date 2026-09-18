@@ -71,7 +71,8 @@ function render(){const pages={'Tableau de bord':dashboard,'Planning':planning,'
 showAuth('login');boot();
 function openDashboardAttendanceV214(){
  const groups=new Map();
- (db.attendance||[]).filter(a=>a.present&&a.meeting_id).forEach(a=>{const m=db.meetings.find(x=>+x.id===+a.meeting_id);if(!m)return;if(!groups.has(m.id))groups.set(m.id,{m:m,count:0});groups.get(m.id).count++});
- const rows=[...groups.values()].sort((a,b)=>(b.m.scheduled_date||'').localeCompare(a.m.scheduled_date||''));
- modal.innerHTML='<div class="modal-card wide"><button class="close" onclick="closeModal()">×</button><p class="eyebrow">PRÉSENCES ENREGISTRÉES</p><h2>Feuilles de présence</h2><p class="muted">Ouvrez directement la fiche de présences de la FI/FIJ concernée.</p>'+rows.map(x=>'<div class="family-row clickable" onclick="openAttendanceReadV214(\'meeting\','+x.m.id+','+x.m.family_id+')"><div><b>'+esc(familyName(x.m.family_id))+'</b><div class="muted">'+esc(x.m.title)+' · '+new Date(x.m.scheduled_date+'T12:00').toLocaleDateString('fr-FR')+'</div></div><span class="pill">'+x.count+' présent'+(x.count>1?'s':'')+'</span></div>').join('')+'</div>';modal.classList.remove('hidden')
+ (db.attendance||[]).filter(a=>a.present&&a.meeting_id).forEach(a=>{const m=db.meetings.find(x=>+x.id===+a.meeting_id);if(!m)return;const fid=+a.family_id||+m.family_id||0,key=m.id+':'+fid;if(!groups.has(key))groups.set(key,{m:m,fid:fid,count:0});groups.get(key).count++});
+ const rows=[...groups.values()].sort((a,b)=>(b.m.scheduled_date||'').localeCompare(a.m.scheduled_date||'')||familyName(a.fid).localeCompare(familyName(b.fid),'fr'));
+ if(rows.length===1)return openAttendanceReadV214('meeting',rows[0].m.id,rows[0].fid);
+ modal.innerHTML='<div class="modal-card wide"><button class="close" onclick="closeModal()">×</button><p class="eyebrow">PRÉSENCES ENREGISTRÉES</p><h2>Feuilles de présence</h2><div class="pilot-compact-list">'+rows.map(x=>'<div class="family-row clickable" onclick="openAttendanceReadV214(\'meeting\','+x.m.id+','+x.fid+')"><div><b>'+esc(familyName(x.fid))+'</b><div class="muted">'+esc(x.m.title)+' · '+new Date(x.m.scheduled_date+'T12:00').toLocaleDateString('fr-FR')+'</div></div><span class="pill">'+x.count+' présent'+(x.count>1?'s':'')+' →</span></div>').join('')+'</div></div>';modal.classList.remove('hidden')
 }
