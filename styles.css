@@ -49,3 +49,14 @@ html.fi-booting #workspace:not(.hidden){visibility:hidden!important;opacity:0!im
 .arrival-unknown{display:flex;align-items:center;gap:9px;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--soft);font-size:14px;color:var(--muted);margin:0}
 .arrival-unknown input{width:20px;height:20px;flex:0 0 20px;margin:0}
 @media(max-width:640px){.attendance-row{align-items:flex-start}.attendance-time{width:100%;padding-left:42px}.arrival-editor{grid-template-columns:1fr 1fr;gap:9px}.arrival-unknown{min-height:48px}.arrival-field input{min-height:48px}}
+
+/* v220 — itinéraires SETRAM lisibles porte-à-porte */
+.setram-journey-v220{padding:0;overflow:hidden;background:#fff}
+.journey-head-v220{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 18px;background:#f8fafc;border-bottom:1px solid #e8ebf0}
+.journey-head-v220>div{display:grid;gap:4px}.journey-head-v220 b{font-size:18px}.journey-head-v220 small{color:#64748b}
+.journey-steps-v220{padding:4px 18px 12px}.journey-step-v220{display:grid;grid-template-columns:38px 1fr;gap:12px;position:relative;padding:16px 0}
+.journey-step-v220:not(:last-child):after{content:'';position:absolute;left:18px;top:48px;bottom:-5px;border-left:2px solid #dce2ea}
+.journey-dot-v220{width:36px;height:36px;border:1px solid #dfe4eb;border-radius:50%;background:#fff;display:grid;place-items:center;z-index:1}
+.journey-step-v220 p{margin:5px 0;color:#475569;line-height:1.45}.journey-time-v220{display:inline-block;min-width:48px;font-weight:750;color:#172033}
+.journey-step-v220.transit>div>b{font-size:16px}.journey-step-v220.walk>div>b{color:#334155}
+@media(max-width:600px){.journey-head-v220{align-items:flex-start}.journey-head-v220 b{font-size:16px}.journey-steps-v220{padding-left:14px;padding-right:14px}}
