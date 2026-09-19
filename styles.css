@@ -41,3 +41,11 @@ html.fi-booting #workspace:not(.hidden){visibility:hidden!important;opacity:0!im
 .pilot-tabs-v11{display:flex!important;flex-wrap:wrap!important;gap:6px!important;overflow:visible!important;background:transparent!important;padding:0!important}
 .pilot-tabs-v11 button{width:auto!important;min-width:0!important;height:32px!important;min-height:32px!important;padding:0 10px!important;border-radius:999px!important;font-size:12px!important;white-space:nowrap!important}
 @media(max-width:700px){.pilotage-head-v208 .toolbar{align-items:center}.pilotage-head-v208 .toolbar>.pilot-export-icons-v208{width:auto}.pilot-filter-v208 .period-tabs,.pilot-tabs-v11{display:flex!important;grid-template-columns:none!important}.pilot-export-icons-v208{margin-left:auto}}
+
+/* v219 — pointage mobile propre */
+.arrival-editor{display:grid;grid-template-columns:minmax(145px,1fr) minmax(150px,1fr);gap:12px;align-items:end;width:100%}
+.arrival-field{display:grid;gap:6px;margin:0;font-size:13px;color:var(--muted)}
+.arrival-field input{width:100%;min-width:0}
+.arrival-unknown{display:flex;align-items:center;gap:9px;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--soft);font-size:14px;color:var(--muted);margin:0}
+.arrival-unknown input{width:20px;height:20px;flex:0 0 20px;margin:0}
+@media(max-width:640px){.attendance-row{align-items:flex-start}.attendance-time{width:100%;padding-left:42px}.arrival-editor{grid-template-columns:1fr 1fr;gap:9px}.arrival-unknown{min-height:48px}.arrival-field input{min-height:48px}}
