@@ -1,5 +1,5 @@
-const CACHE='fi-v4';
+const CACHE='fi-v222';
 self.addEventListener('install',()=>self.skipWaiting());
-self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch{d={body:e.data?.text()||''}};const title=d.title||'FI — ICC Le Mans';e.waitUntil(self.registration.showNotification(title,{body:d.body||'',icon:'fi-le-mans-icon-192.png',badge:'fi-le-mans-icon-192.png',data:d.data||{},tag:d.tag||undefined,renotify:Boolean(d.tag)}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();const data=e.notification.data||{},url=new URL('./',self.location).href+(data.action?`?notification_action=${encodeURIComponent(data.action)}&target_id=${encodeURIComponent(data.target_id||'')}`:'');e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(ws=>{for(const w of ws){if('focus'in w){w.navigate(url);return w.focus()}}return clients.openWindow(url)}))});
