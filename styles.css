@@ -60,3 +60,6 @@ html.fi-booting #workspace:not(.hidden){visibility:hidden!important;opacity:0!im
 .journey-step-v220 p{margin:5px 0;color:#475569;line-height:1.45}.journey-time-v220{display:inline-block;min-width:48px;font-weight:750;color:#172033}
 .journey-step-v220.transit>div>b{font-size:16px}.journey-step-v220.walk>div>b{color:#334155}
 @media(max-width:600px){.journey-head-v220{align-items:flex-start}.journey-head-v220 b{font-size:16px}.journey-steps-v220{padding-left:14px;padding-right:14px}}
+
+/* v223 — relances Reporting */
+.reporting-row-v223{gap:12px;align-items:center}.reporting-row-v223>label{display:flex;align-items:center;margin:0}.reporting-row-v223>label input{width:20px;height:20px;margin:0}.reporting-row-v223>.clickable{flex:1;min-width:0}.reporting-actions-v223{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.reporting-bulk-v223{display:flex;justify-content:flex-end;margin:12px 0}.reporting-bulk-v223 button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:640px){.reporting-row-v223{align-items:flex-start;flex-wrap:wrap}.reporting-row-v223>.clickable{flex:1}.reporting-actions-v223{width:100%;justify-content:flex-end;padding-left:32px}.reporting-bulk-v223 button{width:100%}}
