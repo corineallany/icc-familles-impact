@@ -15,5 +15,46 @@ async function archivePeriod(id){if(!confirm('Archiver cette période ? Aucune d
 function showArchive(id){const a=extraFI.archives.find(x=>+x.id===+id),meet=db.meetings.filter(m=>m.scheduled_date>=a.starts_on&&m.scheduled_date<=a.ends_on);modal.innerHTML=`<div class="modal-card wide"><button class="close" onclick="closeModal()">×</button><h2>${esc(a.name)}</h2><p class="muted">Archive conservée · ${fmtDate(a.starts_on)} → ${fmtDate(a.ends_on)}</p>${meet.map(m=>`<div class="family-row"><b>${esc(m.title)}</b><span>${fmtDate(m.scheduled_date)} · ${m.family_id?esc(familyName(m.family_id)):''}</span></div>`).join('')||'<p class="muted">Aucune rencontre sur cette période.</p>'}</div>`;modal.classList.remove('hidden')}
 function editTemplateDirect(id){const t=db.templates.find(x=>+x.id===+id);if(!t)return;modalForm('Modifier le modèle',`<input id="etName" value="${esc(t.name)}"><select id="etType"><option ${t.family_type==='FI'?'selected':''}>FI</option><option ${t.family_type==='FIJ'?'selected':''}>FIJ</option></select><input id="etKind" value="${esc(t.meeting_kind||'')}"><label><input id="etReport" type="checkbox" ${t.reporting_required?'checked':''}> Reporting requis</label>`,async()=>{const {error}=await sb.from('meeting_templates').update({name:etName.value.trim(),family_type:etType.value,meeting_kind:etKind.value.trim(),reporting_required:etReport.checked}).eq('id',id);if(error)throw error})}
 const _openTemplateEdit=openTemplate;openTemplate=function(id){_openTemplateEdit(id);const c=modal.querySelector('.modal-card');if(c&&isDirection())c.insertAdjacentHTML('beforeend',`<div class="settings-savebar"><span class="muted">Configuration du modèle</span><button class="ghost" onclick="closeModal();editTemplateDirect(${id})">Modifier le modèle</button></div>`)};
+function fiTourForm(){
+  modalForm('FI/FIJ Tour',
+    '<label>Nom du Tour<input id="tourTitle" value="FI/FIJ Tour"></label>'+
+    '<label>Date *<input id="tourDate" type="date"></label>'+
+    '<p class="muted">Ajoutez une ou plusieurs FI/FIJ visitées le même jour, avec leur horaire de passage.</p>'+
+    '<div id="tourStops"></div>'+
+    '<button type="button" class="ghost" onclick="addTourStop()">＋ Ajouter une FI/FIJ visitée</button>',
+    async()=>{
+      const stops=[...document.querySelectorAll('.tour-stop')];
+      if(!tourDate.value||!stops.length)throw Error('Date et au moins une FI/FIJ sont requises.');
+      const {data:p,error}=await sb.from('programs').insert({
+        title:tourTitle.value.trim()||'FI/FIJ Tour',
+        kind:'FI/FIJ Tour',
+        scheduled_date:tourDate.value,
+        end_date:tourDate.value,
+        status:'scheduled',
+        target_scope:'selected'
+      }).select().single();
+      if(error)throw error;
+      const rows=stops.map(s=>({
+        program_id:p.id,
+        family_id:+s.querySelector('.tour-family').value,
+        visit_date:tourDate.value,
+        starts_at:s.querySelector('.tour-start').value||null,
+        ends_at:s.querySelector('.tour-end').value||null
+      }));
+      const q=await sb.from('fi_tour_visits').insert(rows);
+      if(q.error)throw q.error;
+      await loadData();
+      render();
+    });
+  setTimeout(addTourStop,0);
+}
+function addTourStop(){
+  const host=document.getElementById('tourStops');if(!host)return;
+  const d=document.createElement('div');d.className='tour-stop form-row';
+  d.innerHTML='<select class="tour-family">'+db.families.map(f=>'<option value="'+f.id+'">'+esc(f.family_type)+' · '+esc(f.name)+'</option>').join('')+'</select>'+
+    '<input class="tour-start" type="time"><input class="tour-end" type="time">'+
+    '<button type="button" class="ghost danger" onclick="this.parentElement.remove()">×</button>';
+  host.appendChild(d);
+}
 function tourFamilyBlock(fid){const visits=extraFI.tours.filter(v=>+v.family_id===+fid);if(!visits.length)return '';return `<div class="card settings-block"><h3>Visites FI/FIJ Tour</h3>${visits.map(v=>`<div class="family-row"><div><b>${fmtDate(v.visit_date)}</b><div class="muted">Passage du Pasteur${v.starts_at?' · '+String(v.starts_at).slice(0,5):''}${v.ends_at?'–'+String(v.ends_at).slice(0,5):''}</div></div><span class="pill">Programme</span></div>`).join('')}</div>`}
 const _familyTour=familySpaceBody;familySpaceBody=function(f,tab,x){return _familyTour(f,tab,x)+tourFamilyBlock(f.id)};
