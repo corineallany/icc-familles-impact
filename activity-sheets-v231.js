@@ -113,6 +113,8 @@
 
   window.openMeetingDetailV231=fullMeeting;
   window.openProgramDetailV231=fullProgram;
+  window.openMeetingDetailV9=fullMeeting;
+  window.openProgramDetailV9=fullProgram;
   window.openMeeting=function(id){return fullMeeting(id)};
   window.openProgram=function(id){return fullProgram(id)};
 
