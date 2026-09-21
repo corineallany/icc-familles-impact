@@ -34,3 +34,7 @@ input[type="checkbox"],input[type="radio"]{width:16px!important;height:16px!impo
 .program-days-intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:16px 0 8px}
 .program-day-shortcuts{margin-top:8px}.program-day-shortcuts button:disabled{opacity:.45}
 .pilot-head-compact-v198 .compact-filters-v180{margin-top:14px}
+
+
+/* v236 — membres clairement séparés par FI/FIJ */
+.member-family-group-v236{margin:18px 0 22px;padding:14px 16px;border:1px solid var(--line,#e2e8f0);border-radius:14px;background:#fff}.member-family-group-head-v236{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid #edf0f5}.member-family-group-head-v236 h3{margin:6px 0 0}.member-family-group-head-v236 strong{white-space:nowrap}.member-family-list-v236 .member-row-v236{padding:10px 2px!important}.member-row-v236+.member-row-v236{border-top:1px solid #f0f2f6}.member-row-v236 .muted{margin-top:3px}@media(max-width:650px){.member-family-group-v236{padding:12px}.member-family-group-head-v236{align-items:flex-start}}
