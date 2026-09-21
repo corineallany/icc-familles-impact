@@ -200,6 +200,17 @@
         return;
       }
 
+      // Règle métier conservée dans le circuit unique : une rencontre future
+      // ne peut pas recevoir de pointage avant sa fenêtre d'ouverture.
+      if (kind === 'meeting' && typeof meetingPhase === 'function' && typeof attendanceWindow === 'function') {
+        const phase = meetingPhase(item);
+        const live = attendanceWindow(item);
+        if (phase === 'upcoming' && !live) {
+          alert('Les présences ouvrent 20 minutes avant le début de la rencontre.');
+          return;
+        }
+      }
+
       if (kind === 'meeting') {
         const fid = item.family_id == null ? null : Number(item.family_id);
         if (fid && !canEditFamily(fid)) {
