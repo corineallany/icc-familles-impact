@@ -37,7 +37,7 @@ function periodSelect(value,setter,week=true){
 async /* v237 — actions individuelles d'occurrence désactivées : une occurrence récurrente est globale. */
 function occurrenceActionV195(){return alert('Cette occurrence est globale et ne peut pas être modifiée pour une FI individuellement.');}
 function virtualActionsV195(){return '';}
-function deleteMeetingV203(id){if(!isDirection())return;const m=db.meetings.find(x=>+x.id===+id);if(!m)return;if(!confirm('Supprimer définitivement cette rencontre et toutes les données qui lui sont rattachées ? Cette action est irréversible.'))return;const q=await sb.from('meetings').delete().eq('id',id);if(q.error)return alert('Suppression impossible : '+q.error.message);await loadData();render()}
+async function deleteMeetingV203(id){if(!isDirection())return;const m=db.meetings.find(x=>+x.id===+id);if(!m)return;if(!confirm('Supprimer définitivement cette rencontre et toutes les données qui lui sont rattachées ? Cette action est irréversible.'))return;const q=await sb.from('meetings').delete().eq('id',id);if(q.error)return alert('Suppression impossible : '+q.error.message);await loadData();render()}
 async function deleteProgramV203(id){if(!isDirection())return;const p=db.programs.find(x=>+x.id===+id);if(!p)return;if(!confirm('Supprimer définitivement ce programme et toutes les données qui lui sont rattachées ? Cette action est irréversible.'))return;const q=await sb.from('programs').delete().eq('id',id);if(q.error)return alert('Suppression impossible : '+q.error.message);await loadData();render()}
 function meetingActionsV195(m){
   const can=isDirection()||(typeof canManageOccurrenceV7==='function'&&canManageOccurrenceV7(m));if(!can)return'';
