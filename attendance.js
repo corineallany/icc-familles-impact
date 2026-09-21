@@ -122,7 +122,18 @@ async function saveAttendanceV225(kind,id,btn){
 }
 function openAttendanceV225(kind,id){
  window._attendanceKind=kind;window._attendanceId=id;
- const members=eligibleMembers(kind,id);
+ const item=db[kind==='meeting'?'meetings':'programs'].find(x=>+x.id===+id);
+ let members;
+ if(kind==='meeting'){
+   const fid=item?.family_id||null;
+   members=attendanceMembers(kind,id,fid).map(x=>x.m);
+ }else{
+   const fids=isDirection()?programFamilyIds(item||{}):programFamilyIds(item||{}).filter(fid=>canManageAttendanceFamily(fid));
+   members=attendanceMembers(kind,id,null).map(x=>x.m).filter(m=>{
+     const fid=memberFamilyId(m.id);
+     return isDirection()?true:fids.includes(+fid);
+   });
+ }
  const planned=attendancePlannedMinutesV225(kind,id);
  const rows=members.map(m=>{
    const a=db.attendance.find(x=>+x.member_id===+m.id&&+x[kind+'_id']===+id);
