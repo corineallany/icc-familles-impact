@@ -73,7 +73,7 @@
     return d.getHours()*60 + d.getMinutes();
   }
 
-  function rowsFor(kind,id){
+  function rowsFor(kind,id,programDayId=null){
     const item = itemFor(kind,id);
     if (!item) return [];
 
@@ -97,7 +97,8 @@
     return members.map(m => {
       const a = (db.attendance||[]).find(x =>
         Number(x.member_id) === Number(m.id) &&
-        Number(x[kind+'_id']) === Number(id)
+        Number(x[kind+'_id']) === Number(id) &&
+        (kind !== 'program' || programDayId == null || Number(x.program_day_id) === Number(programDayId))
       );
       const arrival = a?.arrival_time ? String(a.arrival_time).slice(0,5) : '';
       const p = plannedMinutes(kind,id);
@@ -160,6 +161,7 @@
         const {error} = await sb.rpc('save_attendance_entry',{
           p_meeting_id: kind === 'meeting' ? Number(id) : null,
           p_program_id: kind === 'program' ? Number(id) : null,
+          p_program_day_id: kind === 'program' ? (window._canonicalAttendanceDayId == null ? null : Number(window._canonicalAttendanceDayId)) : null,
           p_member_id: memberId,
           p_family_id: memberFamily(memberId),
           p_present: !!check.checked,
@@ -186,6 +188,11 @@
         button.textContent = button.dataset.oldText || 'Enregistrer les présences';
       }
     }
+  };
+
+  window.changeCanonicalAttendanceDay = function(kind,id,dayId){
+    window._canonicalAttendanceDayId = Number(dayId);
+    window.openAttendance(kind,id);
   };
 
   window.openAttendance = function(kind,id){
@@ -221,7 +228,7 @@
         const days = (db.programDays||[])
           .filter(d => Number(d.program_id) === Number(id) && d.program_date && d.starts_at)
           .sort((a,b) => String(a.program_date).localeCompare(String(b.program_date)));
-        const first = days[0];
+        const first = days.find(d => Number(d.id) === Number(window._canonicalAttendanceDayId)) || days[0];
         if (first && Number.isFinite(openMinutes)) {
           const start = new Date(String(first.program_date)+'T'+String(first.starts_at).slice(0,8)).getTime();
           if (Date.now() < start - openMinutes*60000) {
@@ -250,12 +257,25 @@
 
       window._canonicalAttendanceKind = kind;
       window._canonicalAttendanceId = Number(id);
+      window._canonicalAttendanceDayId = null;
 
-      const rows = rowsFor(kind,id);
+      let selectedDay = null;
+      if (kind === 'program') {
+        const days = (db.programDays||[]).filter(d => Number(d.program_id) === Number(id)).sort((a,b)=>String(a.program_date).localeCompare(String(b.program_date)));
+        if (days.length) {
+          const requested = window._canonicalAttendanceDayId;
+          selectedDay = days.find(d => Number(d.id) === Number(requested)) || days.find(d => d.program_date === dateISO(new Date())) || days[0];
+          window._canonicalAttendanceDayId = selectedDay?.id ?? null;
+        }
+      }
+
+      const rows = rowsFor(kind,id,window._canonicalAttendanceDayId);
       const p = plannedMinutes(kind,id);
       const title = item.title || (kind === 'meeting' ? 'Rencontre' : 'Programme');
       const subtitle = [
-        item.scheduled_date || '',
+        selectedDay?.program_date || item.scheduled_date || '',
+        selectedDay?.starts_at ? String(selectedDay.starts_at).slice(0,5) : '',
+        selectedDay?.ends_at ? '→ '+String(selectedDay.ends_at).slice(0,5) : '',
         kind === 'meeting' && item.family_id ? familyName(item.family_id) : ''
       ].filter(Boolean).join(' · ');
 
@@ -309,6 +329,7 @@
           <p class="eyebrow">GESTION DES PRÉSENCES</p>
           <h2>${esc(title)}</h2>
           <p class="muted">${esc(subtitle)}</p>
+          ${kind === 'program' && (db.programDays||[]).filter(d=>Number(d.program_id)===Number(id)).length ? `<label class="attendance-day-picker"><span>Journée à gérer</span><select onchange="window.changeCanonicalAttendanceDay('${kind}',${Number(id)},this.value)">${(db.programDays||[]).filter(d=>Number(d.program_id)===Number(id)).sort((a,b)=>String(a.program_date).localeCompare(String(b.program_date))).map(d=>`<option value="${d.id}" ${Number(d.id)===Number(window._canonicalAttendanceDayId)?'selected':''}>${esc(d.program_date)}${d.starts_at?' · '+String(d.starts_at).slice(0,5):''}${d.ends_at?' → '+String(d.ends_at).slice(0,5):''}</option>`).join('')}</select></label>` : ''}
           <p class="muted">
             Cette fiche est le point d’entrée unique des présences.
             Cochez les personnes présentes et renseignez l’heure d’arrivée si elle est connue.
