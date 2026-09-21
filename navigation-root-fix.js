@@ -18,17 +18,17 @@
     if(!target)return;
     try{
       target.innerHTML='';
-      if(window.current==='Accueil' && typeof accueilFI==='function'){
+      if(current==='Accueil' && typeof accueilFI==='function'){
         target.innerHTML=accueilFI();
       }else{
-        const fn=PAGE[window.current]||dashboard;
+        const fn=PAGE[current]||dashboard;
         target.innerHTML=fn();
       }
     }catch(e){
       console.error('[FI navigation root]',e);
-      target.innerHTML='<div class="card"><h2>'+esc(window.current||'FI')+'</h2><p class="muted">Une erreur empêche momentanément l’affichage de ce module.</p><details><summary>Détail technique</summary><pre style="white-space:pre-wrap">'+esc(e?.message||e)+'</pre></details></div>';
+      target.innerHTML='<div class="card"><h2>'+esc(current||'FI')+'</h2><p class="muted">Une erreur empêche momentanément l’affichage de ce module.</p><details><summary>Détail technique</summary><pre style="white-space:pre-wrap">'+esc(e?.message||e)+'</pre></details></div>';
     }
-    if(window.pageTitle)pageTitle.textContent=window.current==='Accueil'?'Accueil':(window.current||'Accueil');
+    if(window.pageTitle)pageTitle.textContent=current==='Accueil'?'Accueil':(current||'Accueil');
     if(typeof navMenu==='function')navMenu();
     if(typeof bindHomeBrand==='function')setTimeout(bindHomeBrand,0);
     if(typeof renderBackControl==='function')setTimeout(renderBackControl,0);
@@ -39,11 +39,11 @@
   function goRoot(page){
     const can=items.includes(page) && (page!=='Paramètres'||isDirection());
     if(!can)return;
-    if(window.current && window.current!==page && Array.isArray(window.fiNavHistory)){
-      window.fiNavHistory.push(window.current);
-      if(window.fiNavHistory.length>30)window.fiNavHistory.shift();
+    if(current && current!==page && Array.isArray(fiNavHistory)){
+      fiNavHistory.push(current);
+      if(fiNavHistory.length>30)fiNavHistory.shift();
     }
-    window.current=page;
+    current=page;
     if(typeof closeModal==='function')closeModal();
     renderRoot();
     document.body.classList.remove('fi-mobile-nav-open');
@@ -51,6 +51,6 @@
 
   window.render=renderRoot;
   window.go=goRoot;
-  if(typeof window.current==='undefined')window.current='Tableau de bord';
+  if(typeof current==='undefined')current='Tableau de bord';
   console.log('[FI] navigation root loaded');
 })();
