@@ -47,8 +47,9 @@
     if (!item) return null;
     if (item.planned_start) return item.planned_start;
     if (kind === 'program') {
+      const wantedDay = window._canonicalAttendanceDayId == null ? null : Number(window._canonicalAttendanceDayId);
       const day = (db.programDays||[])
-        .filter(d => Number(d.program_id) === Number(id) && d.starts_at)
+        .filter(d => Number(d.program_id) === Number(id) && d.starts_at && (wantedDay == null || Number(d.id) === wantedDay))
         .sort((a,b) => String(a.program_date).localeCompare(String(b.program_date)))[0];
       if (day) {
         return new Date(
@@ -257,14 +258,12 @@
 
       window._canonicalAttendanceKind = kind;
       window._canonicalAttendanceId = Number(id);
-      window._canonicalAttendanceDayId = null;
-
+      const requestedDayId = window._canonicalAttendanceDayId == null ? null : Number(window._canonicalAttendanceDayId);
       let selectedDay = null;
       if (kind === 'program') {
         const days = (db.programDays||[]).filter(d => Number(d.program_id) === Number(id)).sort((a,b)=>String(a.program_date).localeCompare(String(b.program_date)));
         if (days.length) {
-          const requested = window._canonicalAttendanceDayId;
-          selectedDay = days.find(d => Number(d.id) === Number(requested)) || days.find(d => d.program_date === dateISO(new Date())) || days[0];
+          selectedDay = days.find(d => Number(d.id) === Number(requestedDayId)) || days.find(d => d.program_date === dateISO(new Date())) || days[0];
           window._canonicalAttendanceDayId = selectedDay?.id ?? null;
         }
       }
