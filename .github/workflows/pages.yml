@@ -26,4 +26,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# deployment trigger
+# deployment trigger — refresh latest canonical FI sheets
