@@ -204,7 +204,6 @@
       let rows=[]; if(checked('pMultiSlots')) rows=[...document.querySelectorAll('.program-day-row')].map(row=>({program_id:p.id,program_date:row.dataset.date,starts_at:row.querySelector('.pd-start')?.value||null,ends_at:row.querySelector('.pd-end')?.value||null})); else { for(let d=new Date(val('pStart')+'T12:00:00');d<=new Date(end+'T12:00:00');d.setDate(d.getDate()+1)) rows.push({program_id:p.id,program_date:dateISO(d),starts_at:val('pBaseStart')||null,ends_at:val('pBaseEnd')||null}); }
       if(error)throw error;
       if(!direction&&!leaders&&p.target_scope==='SELECTED'){const q=await sb.from('program_family_targets').insert(selected.map(family_id=>({program_id:p.id,family_id})));if(q.error)throw q.error}
-      const rows=checked('pMultiSlots')?[...document.querySelectorAll('.program-day-row')].map(r=>({program_id:p.id,program_date:r.dataset.date,starts_at:r.querySelector('.pd-start')?.value||null,ends_at:r.querySelector('.pd-end')?.value||null})):(()=>{const a=[];for(let d=new Date(val('pStart')+'T12:00:00');d<=new Date(end+'T12:00:00');d.setDate(d.getDate()+1))a.push({program_id:p.id,program_date:dateISO(d),starts_at:val('pBaseStart')||null,ends_at:val('pBaseEnd')||null});return a})();
       if(rows.length){const q=await sb.from('program_days').insert(rows);if(q.error)throw q.error}
       closeModal();await loadData();render();
     }catch(e){alert(e.message||'Enregistrement impossible.')}finally{btn.disabled=false}
