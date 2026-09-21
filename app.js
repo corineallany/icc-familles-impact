@@ -33,7 +33,32 @@ function dashboard(){return `<div class="grid"><div class="card metric"><span>FI
 function familyPage(){const list=db.families.filter(f=>f.family_type===familyTab);return `<div class="card page-card"><div class="toolbar"><div class="subtabs"><button class="${familyTab==='FI'?'active':''}" onclick="familyTab='FI';render()">FI</button><button class="${familyTab==='FIJ'?'active':''}" onclick="familyTab='FIJ';render()">FIJ</button></div>${isDirection()?`<button class="primary" onclick="formFamily('${familyTab}')">＋ Nouvelle ${familyTab}</button>`:''}</div>${list.map(f=>`<div class="family-row clickable" onclick="openFamily(${f.id})"><div><b>${esc(f.name)}</b><div class="muted">${esc(f.neighborhood||'Secteur à préciser')} · ${esc(f.status||'Active')}</div></div><span class="pill ${f.family_type.toLowerCase()}">${f.family_type}</span></div>`).join('')}</div>`}
 function openFamily(id){const f=db.families.find(x=>x.id===id),aa=db.assignments.filter(a=>a.family_id===id&&!a.ends_at),rr=allRoles.filter(r=>r.family_id===id);modal.innerHTML=`<div class="modal-card"><button class="close" onclick="closeModal()">×</button><span class="pill ${f.family_type.toLowerCase()}">${f.family_type}</span><h2>${esc(f.name)}</h2><p>${esc(f.address||f.neighborhood||'Localisation à préciser')}</p><h3>Responsables</h3><p>Pilote : <b>${memberName(rr.find(r=>r.role==='pilote')?.member_id)}</b><br>Copilote 1 : <b>${memberName(rr.find(r=>r.role==='copilote'&&r.copilot_slot===1)?.member_id)}</b><br>Copilote 2 : <b>${memberName(rr.find(r=>r.role==='copilote'&&r.copilot_slot===2)?.member_id)}</b></p><h3>Membres (${aa.length})</h3>${aa.map(a=>`<div>${esc(memberName(a.member_id))}</div>`).join('')||'<p class="muted">Aucun membre</p>'}</div>`;modal.classList.remove('hidden')}
 function formFamily(type){modalForm(`Nouvelle ${type}`,`<input id="fName" placeholder="Nom"><input id="fHost" placeholder="Hôte"><input id="fAddress" placeholder="Adresse"><select id="fSector"><option value="">Secteur</option>${SECTEURS.map(s=>`<option>${s}</option>`).join('')}</select>`,async()=>{const {error}=await sb.from('families').insert({name:fName.value.trim(),family_type:type,host_name:fHost.value.trim()||null,address:fAddress.value.trim()||null,neighborhood:fSector.value||null,status:'Active'});if(error)throw error})}
-function membersPage(){return `<div class="card page-card"><h2>Membres</h2>${db.members.map(m=>`<div class="family-row"><b>${esc(m.first_name)} ${esc(m.last_name)}</b><span class="muted">${esc(m.email||'')}</span></div>`).join('')}</div>`}
+function membersPage(){
+ const active=db.members.filter(m=>m.active!==false);
+ const groups=new Map();
+ active.forEach(m=>{const fid=typeof memberFamilyId==='function'?memberFamilyId(m.id):activeAssignmentFor(m.id)?.family_id||0;if(!groups.has(fid))groups.set(fid,[]);groups.get(fid).push(m)});
+ const groupEntries=[...groups.entries()].sort((x,y)=>{
+   const an=x[0]?familyName(x[0]):'Sans FI/FIJ',bn=y[0]?familyName(y[0]):'Sans FI/FIJ';
+   return an.localeCompare(bn,'fr',{sensitivity:'base'});
+ });
+ const groupHtml=groupEntries.map(([fid,ms])=>{
+   ms.sort((x,y)=>memberName(x.id).localeCompare(memberName(y.id),'fr',{sensitivity:'base'}));
+   const f=fid?db.families.find(x=>+x.id===+fid):null;
+   const type=f?.family_type||'';
+   return '<section class="member-family-group-v236">'+
+     '<div class="member-family-group-head-v236"><div><span class="pill '+(type?type.toLowerCase():'')+'">'+esc(type||'Sans rattachement')+'</span><h3>'+esc(f?.name||'Membres sans FI/FIJ')+'</h3></div><strong>'+ms.length+' membre'+(ms.length>1?'s':'')+'</strong></div>'+
+     '<div class="member-family-list-v236">'+ms.map(m=>{
+       const bd=typeof birthdayParts==='function'?birthdayParts(m):[];
+       return '<div class="family-row clickable member-row-v236" onclick="openMember('+m.id+')"><div><b>'+esc(memberName(m.id))+'</b><div class="muted">'+esc(m.email||'')+'</div></div>'+
+         (bd?.[0]?'<span>🎂 '+String(bd[1]).padStart(2,'0')+'/'+String(bd[0]).padStart(2,'0')+'</span>':'')+
+       '</div>';
+     }).join('')+'</div></section>';
+ }).join('');
+ return '<div class="card page-card"><div class="toolbar"><div><h2>Membres</h2><p class="muted">'+active.length+' membre'+(active.length>1?'s':'')+' · classés par FI/FIJ</p></div>'+
+   (isDirection()?'<button class="primary" onclick="formMember()">＋ Nouveau membre</button>':'')+
+   '</div>'+(groupHtml||'<p class="muted">Aucun membre actif.</p>')+'</div>';
+}
+
 function activeVersion(t,date){return db.versions.filter(v=>v.template_id===t.id&&v.effective_from<=date&&(!v.effective_to||v.effective_to>=date)).sort((a,b)=>b.effective_from.localeCompare(a.effective_from))[0]}
 function isPaused(type,date){return db.pauses.some(p=>(p.scope==='BOTH'||p.scope===type)&&p.starts_on<=date&&p.ends_on>=date)}
 function weeklyVirtualEvents(start,end){const out=[];for(const t of db.templates.filter(x=>x.active)){for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const iso=dateISO(d),v=activeVersion(t,iso);if(v&&d.getDay()===(v.weekday%7)&&!isPaused(t.family_type,iso))out.push({date:iso,type:t.family_type,title:v.title||t.name,time:(v.start_time||'').slice(0,5),virtual:true,template:t})}}return out}
