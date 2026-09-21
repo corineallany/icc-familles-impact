@@ -200,14 +200,34 @@
         return;
       }
 
-      // Règle métier conservée dans le circuit unique : une rencontre future
-      // ne peut pas recevoir de pointage avant sa fenêtre d'ouverture.
+      // Règle métier dans le circuit unique : l'ouverture vient de Paramètres,
+      // jamais d'une durée codée en dur.
+      const attendanceSetting = (db.settings||[]).find(s => s.key === 'attendance_window');
+      const timingSetting = (db.settings||[]).find(s => s.key === 'timing');
+      const attendanceCfg = attendanceSetting?.value || {};
+      const timingCfg = timingSetting?.value || {};
+      const openMinutesRaw = attendanceCfg.opens_before_minutes ?? timingCfg.attendance_open_minutes_before;
+      const openMinutes = Number(openMinutesRaw);
       if (kind === 'meeting' && typeof meetingPhase === 'function' && typeof attendanceWindow === 'function') {
         const phase = meetingPhase(item);
         const live = attendanceWindow(item);
         if (phase === 'upcoming' && !live) {
-          alert('Les présences ouvrent 20 minutes avant le début de la rencontre.');
+          const label = Number.isFinite(openMinutes) ? String(openMinutes) : 'la durée configurée';
+          alert('Les présences ne sont pas encore ouvertes. Elles s’ouvrent selon le réglage de Paramètres ('+label+(Number.isFinite(openMinutes)?' min avant le début':'')+').');
           return;
+        }
+      }
+      if (kind === 'program') {
+        const days = (db.programDays||[])
+          .filter(d => Number(d.program_id) === Number(id) && d.program_date && d.starts_at)
+          .sort((a,b) => String(a.program_date).localeCompare(String(b.program_date)));
+        const first = days[0];
+        if (first && Number.isFinite(openMinutes)) {
+          const start = new Date(String(first.program_date)+'T'+String(first.starts_at).slice(0,8)).getTime();
+          if (Date.now() < start - openMinutes*60000) {
+            alert('Les présences ne sont pas encore ouvertes. Elles s’ouvrent '+openMinutes+' minute'+(openMinutes>1?'s':'')+' avant le début, selon le réglage de Paramètres.');
+            return;
+          }
         }
       }
 
