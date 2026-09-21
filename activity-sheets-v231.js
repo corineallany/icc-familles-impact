@@ -105,6 +105,7 @@
       '<div class="report-section"><h3>Dates & horaires</h3>'+schedule+'</div>'+
       '<div class="grid">'+locationBlock(p)+onlineBlock(p)+'</div>'+
       participantsBlock(fams)+
+      (p.kind==='FI/FIJ Tour' && typeof extraFI!=='undefined' ? '<details class="report-section activity-participants"><summary><b>FI/FIJ visitées</b><span class="muted">'+extraFI.tours.filter(v=>+v.program_id===+p.id).length+' passage(s)</span></summary><div class="pilot-compact-list">'+extraFI.tours.filter(v=>+v.program_id===+p.id).map(v=>{const f=db.families.find(x=>+x.id===+v.family_id);return '<div class="family-row"><div><b>'+esc2(f?.name||'FI/FIJ')+'</b><div class="muted">'+fmtDate(v.visit_date)+(v.starts_at?' · '+String(v.starts_at).slice(0,5):'')+(v.ends_at?' → '+String(v.ends_at).slice(0,5):'')+'</div></div></div>'}).join('')+'</div></details>' : '')+
       '<p class="muted">'+esc2(state.message)+'</p>'+
       activityActions('program',id,p)+
       '</div>';
