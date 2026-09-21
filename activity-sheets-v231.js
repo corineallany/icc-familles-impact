@@ -112,22 +112,25 @@
   }
 
   function openOccurrenceByV231(tid,date){
-    const t=db.templates.find(x=>+x.id===+tid),v=t&&activeVersion(t,date);
-    if(!t||!v)return;
-    const families=(db.families||[]).filter(f=>f.family_type===t.family_type&&f.status!=='Fermée');
-    const item={title:v.title||t.name,meeting_kind:'Rencontre hebdomadaire',scheduled_date:date,
-      planned_start:v.start_time?new Date(date+'T'+String(v.start_time).slice(0,8)).toISOString():null,
-      planned_end:v.end_time?new Date(date+'T'+String(v.end_time).slice(0,8)).toISOString():null,
-      theme:v.theme||null,theme_description:v.theme_description||null,is_online:false,online_url:null,location:null,
-      family_id:null,status:'scheduled'};
+    const t=db.templates.find(x=>+x.id===+tid),v=t&&activeVersion(t,date);if(!t||!v)return;
+    const mats=(db.meetings||[]).filter(m=>+m.template_version_id===+v.id&&(m.original_scheduled_date===date||m.scheduled_date===date));
+    const base=mats[0]||{};
+    const families=mats.map(m=>m.family_id).filter(Boolean).map(fid=>db.families.find(f=>+f.id===+fid)).filter(Boolean);
+    const fallback=(db.families||[]).filter(f=>f.family_type===t.family_type&&f.status!=='Fermée');
+    const participants=[...new Map((families.length?families:fallback).map(f=>[+f.id,f])).values()];
+    const item={...base,title:base.title||v.title||t.name,meeting_kind:base.meeting_kind||'Rencontre hebdomadaire',scheduled_date:base.scheduled_date||date,
+      planned_start:base.planned_start||(v.start_time?new Date(date+'T'+String(v.start_time).slice(0,8)).toISOString():null),
+      planned_end:base.planned_end||(v.end_time?new Date(date+'T'+String(v.end_time).slice(0,8)).toISOString():null),
+      theme:base.theme||v.theme||null,theme_description:base.theme_description||v.theme_description||null,
+      is_online:base.is_online===true,online_url:base.online_url||null,location:base.location||null,status:base.status||'scheduled'};
     const state=attendanceStateV231('meeting',item);
-    modal.innerHTML='<div class="modal-card wide reporting-sheet"><button class="close" onclick="closeModal()">×</button>'+
-      '<div class="report-hero"><div><p class="eyebrow">FICHE RENCONTRE</p><h2>'+esc2(item.title)+'</h2><p class="muted">'+esc2(item.meeting_kind)+'</p></div><span class="pill">À venir</span></div>'+
-      '<div class="grid"><div class="card"><b>Date</b><p>'+fmtDate(date)+'</p></div><div class="card"><b>Horaire</b><p>'+fmtTime(item.planned_start)+' → '+fmtTime(item.planned_end)+'</p></div></div>'+
-      '<div class="report-section"><p class="eyebrow">THÈME</p><h3>'+esc2(item.theme||'Thème non renseigné')+'</h3>'+(item.theme_description?'<p>'+esc2(item.theme_description)+'</p>':'<p class="muted">Aucune précision renseignée.</p>')+'</div>'+
-      '<div class="report-section"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" disabled> Rencontre en ligne</label><p class="muted">Le lieu ou le lien de connexion sera affiché ici lorsqu’il est renseigné.</p></div>'+
-      participantsBlock(families)+
-      '<p class="muted">'+esc2(state.message)+'</p>'+
+    modal.innerHTML='<div class="modal-card wide reporting-sheet"><button class="close" onclick="closeModal()">×</button>'+ 
+      '<div class="report-hero"><div><p class="eyebrow">FICHE RENCONTRE</p><h2>'+esc2(item.title)+'</h2><p class="muted">'+esc2(item.meeting_kind)+'</p></div><span class="pill">À venir</span></div>'+ 
+      '<div class="grid"><div class="card"><b>Date</b><p>'+fmtDate(item.scheduled_date)+'</p></div><div class="card"><b>Horaire</b><p>'+fmtTime(item.planned_start)+' → '+fmtTime(item.planned_end)+'</p></div></div>'+ 
+      '<div class="report-section"><p class="eyebrow">THÈME</p><h3>'+esc2(item.theme||'Thème non renseigné')+'</h3>'+(item.theme_description?'<p>'+esc2(item.theme_description)+'</p>':'<p class="muted">Aucune précision renseignée.</p>')+'</div>'+ 
+      '<div class="grid">'+locationBlock(item)+onlineBlock(item)+'</div>'+ 
+      participantsBlock(participants)+ 
+      '<p class="muted">'+esc2(state.message)+'</p>'+ 
       '<div class="row-actions"><button class="ghost" onclick="closeModal()">Fermer</button></div></div>';
     modal.classList.remove('hidden');
   }
