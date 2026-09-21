@@ -43,10 +43,8 @@ function meetingActionsV195(m){
   const can=isDirection()||(typeof canManageOccurrenceV7==='function'&&canManageOccurrenceV7(m));if(!can)return'';
   return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();'+(typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button>'+(isDirection()?'<button class="ghost danger" onclick="event.stopPropagation();deleteMeetingV203('+m.id+')">Supprimer</button>':'')+'</div>';
 }
-function virtualActionsV195(o,fid){
-  if(!isDirection()&&typeof canActionV6==='function'&&!canActionV6(o.type==='FIJ'?'meetings.fij.manage':'meetings.fi.manage',fid))return'';
-  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();occurrenceActionV195('+o.template.id+',\''+o.date+'\','+fid+',\'edit\')">Modifier</button><button class="ghost" onclick="event.stopPropagation();occurrenceActionV195('+o.template.id+',\''+o.date+'\','+fid+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();occurrenceActionV195('+o.template.id+',\''+o.date+'\','+fid+',\'cancelled\')">Annuler</button></div>';
-}
+function virtualActionsV195(){return '';}
+
 function programActionsV195(p){
   if(!isDirection())return'';
   return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();editProgramV193('+p.id+')">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'cancelled\')">Annuler</button><button class="ghost danger" onclick="event.stopPropagation();deleteProgramV203('+p.id+')">Supprimer</button></div>';
