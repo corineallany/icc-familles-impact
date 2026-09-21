@@ -34,6 +34,7 @@
   }
   function locationBlock(item){
     if(item?.is_online)return '';
+    if(item?.template_version_id&&!item?.location)return '';
     return '<div class="card"><b>Lieu</b><p>'+esc2(item?.location||'Lieu à préciser')+'</p></div>';
   }
 
@@ -79,11 +80,11 @@
 
   function fullMeeting(id){
     const m=db.meetings.find(x=>+x.id===+id);if(!m)return;
-    const fam=meetingFamilies(m), state=attendanceStateV231('meeting',m);
+    const fam=meetingFamilies(m), state=attendanceStateV231('meeting',m),change=(db.changes||[]).filter(c=>+c.template_version_id===+(m.template_version_id||0)&&c.old_date===(m.original_scheduled_date||m.scheduled_date)&&c.action==='modified').sort((a,b)=>String(b.changed_at||'').localeCompare(String(a.changed_at||'')))[0],view={...m,theme:m.theme||change?.new_theme||null,theme_description:m.theme_description||change?.new_theme_description||null};
     modal.innerHTML='<div class="modal-card wide reporting-sheet"><button class="close" onclick="closeModal()">×</button>'+
       '<div class="report-hero"><div><p class="eyebrow">FICHE RENCONTRE</p><h2>'+esc2(m.title)+'</h2><p class="muted">'+esc2(m.meeting_kind||'Rencontre')+'</p></div><span class="pill">'+esc2(({scheduled:'Prévue',completed:'Terminée',cancelled:'Annulée',postponed:'Reportée'})[m.status]||m.status||'Prévue')+'</span></div>'+
       '<div class="grid"><div class="card"><b>Date</b><p>'+fmtDate(m.scheduled_date)+'</p></div><div class="card"><b>Horaire</b><p>'+fmtTime(m.planned_start)+' → '+fmtTime(m.planned_end)+'</p></div></div>'+
-      '<div class="report-section"><p class="eyebrow">THÈME</p><h3>'+esc2(m.theme||'Thème non renseigné')+'</h3>'+(m.theme_description?'<p>'+esc2(m.theme_description)+'</p>':'<p class="muted">Aucune précision renseignée.</p>')+'</div>'+
+      '<div class="report-section"><p class="eyebrow">THÈME</p><h3>'+esc2(view.theme||'Thème non renseigné')+'</h3>'+(view.theme_description?'<p>'+esc2(view.theme_description)+'</p>':'<p class="muted">Aucune précision renseignée.</p>')+'</div>'+
       '<div class="grid">'+locationBlock(m)+onlineBlock(m)+'</div>'+
       participantsBlock(fam)+
       '<p class="muted">'+esc2(state.message)+'</p>'+
@@ -116,13 +117,11 @@
     const t=db.templates.find(x=>+x.id===+tid),v=t&&activeVersion(t,date);if(!t||!v)return;
     const mats=(db.meetings||[]).filter(m=>+m.template_version_id===+v.id&&(m.original_scheduled_date===date||m.scheduled_date===date));
     const base=mats[0]||{};
-    const families=mats.map(m=>m.family_id).filter(Boolean).map(fid=>db.families.find(f=>+f.id===+fid)).filter(Boolean);
-    const fallback=(db.families||[]).filter(f=>f.family_type===t.family_type&&f.status!=='Fermée');
-    const participants=[...new Map((families.length?families:fallback).map(f=>[+f.id,f])).values()];
+    const participants=[...new Map((db.families||[]).filter(f=>f.family_type===t.family_type&&(f.status||'Active')==='Active').map(f=>[+f.id,f])).values()];
     const item={...base,title:base.title||v.title||t.name,meeting_kind:base.meeting_kind||'Rencontre hebdomadaire',scheduled_date:base.scheduled_date||date,
       planned_start:base.planned_start||(v.start_time?new Date(date+'T'+String(v.start_time).slice(0,8)).toISOString():null),
       planned_end:base.planned_end||(v.end_time?new Date(date+'T'+String(v.end_time).slice(0,8)).toISOString():null),
-      theme:base.theme||v.theme||null,theme_description:base.theme_description||v.theme_description||null,
+      theme:(base.theme||((db.changes||[]).filter(c=>+c.template_version_id===+v.id&&c.old_date===date&&c.action==='modified').sort((a,b)=>String(b.changed_at||'').localeCompare(String(a.changed_at||'')))[0]?.new_theme)||v.theme||null),theme_description:base.theme_description||((db.changes||[]).filter(c=>+c.template_version_id===+v.id&&c.old_date===date&&c.action==='modified').sort((a,b)=>String(b.changed_at||'').localeCompare(String(a.changed_at||'')))[0]?.new_theme_description)||v.theme_description||null,
       is_online:base.is_online===true,online_url:base.online_url||null,location:base.location||null,status:base.status||'scheduled'};
     const state=attendanceStateV231('meeting',item);
     modal.innerHTML='<div class="modal-card wide reporting-sheet"><button class="close" onclick="closeModal()">×</button>'+ 
