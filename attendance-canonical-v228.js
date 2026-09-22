@@ -341,17 +341,15 @@
       }).join('');
 
       const externalSection = kind === 'meeting' ? `
-          <div class="card" style="margin-bottom:16px">
-            <div class="toolbar">
+          <div style="margin-top:18px;padding:14px 16px;border-top:1px solid var(--border,#e5e7eb)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
               <div>
-                <h3>Nouveaux & visiteurs</h3>
-                <p class="muted">Les personnes en première visite et les visiteurs d’une autre FI/FIJ sont suivis séparément des membres.</p>
+                <strong style="font-size:14px">Nouveaux & visiteurs</strong>
+                <div class="muted" style="font-size:12px;margin-top:3px">À ajouter uniquement si la personne n’est pas déjà dans la liste des membres de cette FI.</div>
               </div>
-              <button type="button" class="ghost" onclick="openExternalPresenceV12(${Number(id)})">Ajouter une personne</button>
+              <button type="button" class="ghost" onclick="openExternalPresenceV12(${Number(id)})">+ Ajouter un nouveau / visiteur</button>
             </div>
-            <div class="attendance-list">
-              ${externalHtml || '<p class="muted">Aucun nouveau ou visiteur enregistré pour cette rencontre.</p>'}
-            </div>
+            ${externalHtml ? '<div style="margin-top:12px">'+externalHtml+'</div>' : ''}
           </div>` : '';
 
       modal.innerHTML = `
@@ -364,13 +362,13 @@
             Cette fiche est le point d’entrée unique des présences.
             Cochez les personnes présentes et renseignez l’heure d’arrivée si elle est connue.
           </p>
-          ${externalSection}
           <div class="card">
             <h3>Membres de la FI</h3>
             <div class="attendance-list">
               ${html || '<p class="muted">Aucune personne dans votre périmètre.</p>'}
             </div>
           </div>
+          ${externalSection}
           <div class="row-actions">
             <button type="button" class="ghost" onclick="closeModal()">Annuler</button>
             <button type="button" class="primary"
