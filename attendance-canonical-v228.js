@@ -353,6 +353,7 @@
           </div>` : '';
 
       modal.innerHTML = `
+        <div class="modal-card wide attendance-modal-card">
           <button class="close" onclick="closeModal()">×</button>
           <p class="eyebrow">GESTION DES PRÉSENCES</p>
           <h2>${esc(title)}</h2>
