@@ -92,13 +92,27 @@ async function deleteMeetingV203(id){if(!isDirection())return;const m=db.meeting
 async function deleteProgramV203(id){if(!isDirection())return;const p=db.programs.find(x=>+x.id===+id);if(!p)return;if(!confirm('Supprimer définitivement ce programme et toutes les données qui lui sont rattachées ? Cette action est irréversible.'))return;const q=await sb.from('programs').delete().eq('id',id);if(q.error)return alert('Suppression impossible : '+q.error.message);await loadData();render()}
 function meetingActionsV195(m){
   const can=isDirection()||(typeof canManageOccurrenceV7==='function'&&canManageOccurrenceV7(m));if(!can)return'';
-  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();'+(typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button>'+(isDirection()?'<button class="ghost danger" onclick="event.stopPropagation();deleteMeetingV203('+m.id+')">Supprimer</button>':'')+'</div>';
+  const endAt=new Date((m.planned_end||m.planned_start||m.scheduled_date+'T23:59:59'));const past=endAt.getTime()<=Date.now();
+  const hasAttendance=(db.attendance||[]).some(a=>+a.meeting_id===+m.id),hasReporting=(db.reports||[]).some(r=>+r.meeting_id===+m.id),hasActivity=hasAttendance||hasReporting;
+  let actions='<button class="ghost" onclick="event.stopPropagation();'+(typeof editMeetingOccurrenceV7==='function'?'editMeetingOccurrenceV7('+m.id+')':'openMeeting('+m.id+')')+'">Modifier</button>';
+  if(!past)actions+='<button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler</button>';
+  else if(!hasActivity)actions+='<button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'meeting\','+m.id+',\'cancelled\')">Annuler exceptionnellement</button>';
+  else actions+='<span class="muted">Rencontre réalisée'+(hasReporting?' · reporting renseigné':'')+' — non annulable</span>';
+  if(isDirection())actions+='<button class="ghost danger" onclick="event.stopPropagation();deleteMeetingV203('+m.id+')">Supprimer</button>';
+  return '<div class="row-actions agenda-actions-v195">'+actions+'</div>';
 }
 function virtualActionsV195(){return '';}
 
 function programActionsV195(p){
   if(!isDirection())return'';
-  return '<div class="row-actions agenda-actions-v195"><button class="ghost" onclick="event.stopPropagation();editProgramV193('+p.id+')">Modifier</button><button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'cancelled\')">Annuler</button><button class="ghost danger" onclick="event.stopPropagation();deleteProgramV203('+p.id+')">Supprimer</button></div>';
+  const endAt=new Date((p.end_date||p.scheduled_date)+'T23:59:59');const past=endAt.getTime()<=Date.now();
+  const hasActivity=(db.attendance||[]).some(a=>+a.program_id===+p.id);
+  let actions='<button class="ghost" onclick="event.stopPropagation();editProgramV193('+p.id+')">Modifier</button>';
+  if(!past)actions+='<button class="ghost" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'postponed\')">Reporter</button><button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'cancelled\')">Annuler</button>';
+  else if(!hasActivity)actions+='<button class="ghost danger" onclick="event.stopPropagation();openScheduleChangeSheetV195(\'program\','+p.id+',\'cancelled\')">Annuler exceptionnellement</button>';
+  else actions+='<span class="muted">Programme réalisé — non annulable</span>';
+  actions+='<button class="ghost danger" onclick="event.stopPropagation();deleteProgramV203('+p.id+')">Supprimer</button>';
+  return '<div class="row-actions agenda-actions-v195">'+actions+'</div>';
 }
 function setAgendaMeetingPhase(v){agendaMeetingPhase=v;render()} function setAgendaMeetingPeriod(v){agendaMeetingPeriod=v;render()} function setAgendaMeetingKind(v){agendaMeetingKind=v;render()}
 function meetingsPage(){
@@ -118,11 +132,26 @@ function pilotControlsV12(s,e){
  return '<div class="card pilotage-head-v208"><div class="toolbar"><div><h2>Pilotage & statistiques</h2><p class="muted">'+s+' → '+e+'</p></div><div class="pilot-export-icons-v208"><button class="ghost pilot-icon-v208" title="Exporter Excel" aria-label="Exporter Excel" onclick="exportPilotageExcel()">▦</button><button class="ghost pilot-icon-v208" title="Exporter PDF" aria-label="Exporter PDF" onclick="exportPilotagePDF()">⇩</button></div></div><div class="pilot-filter-v208"><div class="period-tabs">'+[['week','Semaine'],['month','Mois'],['quarter','Trimestre'],['semester','Semestre'],['season','Saison FI'],['year','Année']].map(([v,l])=>'<button class="'+(statsPeriod===v?'active':'')+'" onclick="setStatsPeriod(\''+v+'\')">'+l+'</button>').join('')+'<button class="'+(statsPeriod==='custom'?'active':'')+'" onclick="statsPeriod=\'custom\';render()">Personnalisée</button></div><label class="pilot-compare-v208"><input type="checkbox" '+(statsCompare?'checked':'')+' onchange="statsCompare=this.checked;render()"> Comparer à la période précédente</label><div id="customStats" class="finder-search '+(statsPeriod==='custom'?'':'hidden')+'"><input id="statsStart" type="date" value="'+(statsCustomStart||s)+'"><input id="statsEnd" type="date" value="'+(statsCustomEnd||e)+'"><button class="primary" onclick="setCustomStats()">Appliquer</button></div></div>'+pilotCompareLabelV12(s,e)+'<div class="pilot-nav-wrap-v189">'+pilotTabsV12()+'</div></div>';
 }
 function openScheduleChangeSheetV195(kind,id,action){
-  const obj=db[kind==='meeting'?'meetings':'programs'].find(x=>+x.id===+id);if(!obj)return;const cancel=action==='cancelled';
+  const obj=db[kind==='meeting'?'meetings':'programs'].find(x=>+x.id===+id);if(!obj)return;
+  const end=kind==='program'?(obj.end_date||obj.scheduled_date):obj.scheduled_date;
+  const endAt=kind==='program'?new Date(end+'T23:59:59'):new Date((obj.planned_end||obj.planned_start||obj.scheduled_date+'T23:59:59'));
+  const past=endAt.getTime()<=Date.now();
+  const hasAttendance=(db.attendance||[]).some(x=>x[\`${kind}_id\`\]===obj.id);
+  const hasReporting=kind==='meeting'&&(db.reports||[]).some(r=>+r.meeting_id===+obj.id);
+  const hasActivity=hasAttendance||hasReporting;
+  if(past&&action==='postponed')return alert('Cette activité est déjà passée : elle ne peut plus être reportée.');
+  if(past&&action==='cancelled'&&hasActivity)return alert('Cette activité est déjà passée et comporte des données historiques (présences ou reporting) : elle ne peut plus être annulée.');
+  const cancel=action==='cancelled';
   modal.innerHTML='<div class="modal-card wide schedule-sheet-v183"><button class="close" onclick="closeModal()">×</button><div class="report-hero"><div><p class="eyebrow">'+(cancel?'ANNULATION':'REPORT')+'</p><h2>'+(cancel?'Annuler':'Reporter')+' — '+esc(obj.title)+'</h2><p class="muted">Date actuelle : '+new Date(obj.scheduled_date+'T12:00').toLocaleDateString('fr-FR')+'</p></div></div><div class="report-section"><h3>'+(cancel?'Informations sur l’annulation':'Nouvelle programmation')+'</h3>'+(cancel?'':'<div class="form-row"><label>Nouvelle date *<input id="scNewDate" type="date" value="'+obj.scheduled_date+'"></label>'+(kind==='program'?'<label>Nouvelle date de fin<input id="scNewEnd" type="date" value="'+(obj.end_date||obj.scheduled_date)+'"></label>':'')+'</div>')+'<label>Motif *<select id="scReasonType"><option value="">Choisir un motif</option><option>Indisponibilité des responsables</option><option>Lieu indisponible</option><option>Contrainte d’organisation</option><option>Conflit de calendrier</option><option>Faible disponibilité des participants</option><option>Cas de force majeure</option><option>Autre</option></select></label><label>Précisions *<textarea id="scReason" rows="4"></textarea></label><label>Consigne / information à communiquer<textarea id="scNote" rows="3"></textarea></label></div><div class="report-savebar"><button class="ghost" onclick="closeModal()">Retour</button><button class="'+(cancel?'danger':'primary')+'" onclick="saveScheduleChangeV195(\''+kind+'\','+id+',\''+action+'\',this)">'+(cancel?'Confirmer l’annulation':'Confirmer le report')+'</button></div></div>';modal.classList.remove('hidden');
 }
 async function saveScheduleChangeV195(kind,id,action,btn){
-  const obj=db[kind==='meeting'?'meetings':'programs'].find(x=>+x.id===+id),type=scReasonType.value,details=scReason.value.trim(),note=scNote.value.trim();if(!type||!details)return alert('Le motif et les précisions sont obligatoires.');
+  const obj=db[kind==='meeting'?'meetings':'programs'].find(x=>+x.id===+id),type=scReasonType.value,details=scReason.value.trim(),note=scNote.value.trim();
+  const end=kind==='program'?(obj.end_date||obj.scheduled_date):obj.scheduled_date;
+  const endAt=kind==='program'?new Date(end+'T23:59:59'):new Date((obj.planned_end||obj.planned_start||obj.scheduled_date+'T23:59:59'));
+  const past=endAt.getTime()<=Date.now();
+  const hasAttendance=(db.attendance||[]).some(x=>x[\`${kind}_id\`\]===obj.id),hasReporting=kind==='meeting'&&(db.reports||[]).some(r=>+r.meeting_id===+obj.id);
+  if(past&&action==='postponed')return alert('Cette activité est déjà passée : elle ne peut plus être reportée.');
+  if(past&&action==='cancelled'&&(hasAttendance||hasReporting))return alert('Cette activité est déjà passée et comporte des données historiques (présences ou reporting) : elle ne peut plus être annulée.');if(!type||!details)return alert('Le motif et les précisions sont obligatoires.');
   const newDate=action==='postponed'?scNewDate.value:null,newEnd=action==='postponed'&&kind==='program'?scNewEnd.value:null;if(action==='postponed'&&!newDate)return alert('La nouvelle date est obligatoire.');if(newEnd&&newEnd<newDate)return alert('La date de fin ne peut pas précéder la date de début.');
   btn.disabled=true;try{const reason=type+' — '+details+(note?' — Information : '+note:'');let q=await sb.from('schedule_changes').insert({[kind+'_id']:id,action,old_date:obj.scheduled_date,new_date:newDate,reason});if(q.error)throw q.error;const patch={status:action==='cancelled'?'cancelled':'postponed'};if(newDate)patch.scheduled_date=newDate;if(kind==='program'&&newEnd)patch.end_date=newEnd;q=await sb.from(kind==='meeting'?'meetings':'programs').update(patch).eq('id',id);if(q.error)throw q.error;closeModal();await loadData();render()}catch(e){alert(e.message||'Modification impossible.')}finally{btn.disabled=false}
 }
