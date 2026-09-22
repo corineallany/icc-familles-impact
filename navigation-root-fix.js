@@ -33,6 +33,7 @@
     if(typeof bindHomeBrand==='function')setTimeout(bindHomeBrand,0);
     if(typeof renderBackControl==='function')setTimeout(renderBackControl,0);
     if(typeof renderHomeBell==='function')setTimeout(renderHomeBell,0);
+    if(typeof bindNotificationCenterV5==='function')setTimeout(bindNotificationCenterV5,0);
     if(typeof renderProfileFooter==='function')setTimeout(renderProfileFooter,0);
   }
 
