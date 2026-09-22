@@ -136,7 +136,7 @@ function openScheduleChangeSheetV195(kind,id,action){
   const end=kind==='program'?(obj.end_date||obj.scheduled_date):obj.scheduled_date;
   const endAt=kind==='program'?new Date(end+'T23:59:59'):new Date((obj.planned_end||obj.planned_start||obj.scheduled_date+'T23:59:59'));
   const past=endAt.getTime()<=Date.now();
-  const hasAttendance=(db.attendance||[]).some(x=>x[\`${kind}_id\`\]===obj.id);
+  const hasAttendance=(db.attendance||[]).some(x=>x[kind+'_id']===obj.id);
   const hasReporting=kind==='meeting'&&(db.reports||[]).some(r=>+r.meeting_id===+obj.id);
   const hasActivity=hasAttendance||hasReporting;
   if(past&&action==='postponed')return alert('Cette activité est déjà passée : elle ne peut plus être reportée.');
@@ -149,7 +149,7 @@ async function saveScheduleChangeV195(kind,id,action,btn){
   const end=kind==='program'?(obj.end_date||obj.scheduled_date):obj.scheduled_date;
   const endAt=kind==='program'?new Date(end+'T23:59:59'):new Date((obj.planned_end||obj.planned_start||obj.scheduled_date+'T23:59:59'));
   const past=endAt.getTime()<=Date.now();
-  const hasAttendance=(db.attendance||[]).some(x=>x[\`${kind}_id\`\]===obj.id),hasReporting=kind==='meeting'&&(db.reports||[]).some(r=>+r.meeting_id===+obj.id);
+  const hasAttendance=(db.attendance||[]).some(x=>x[kind+'_id']===obj.id),hasReporting=kind==='meeting'&&(db.reports||[]).some(r=>+r.meeting_id===+obj.id);
   if(past&&action==='postponed')return alert('Cette activité est déjà passée : elle ne peut plus être reportée.');
   if(past&&action==='cancelled'&&(hasAttendance||hasReporting))return alert('Cette activité est déjà passée et comporte des données historiques (présences ou reporting) : elle ne peut plus être annulée.');if(!type||!details)return alert('Le motif et les précisions sont obligatoires.');
   const newDate=action==='postponed'?scNewDate.value:null,newEnd=action==='postponed'&&kind==='program'?scNewEnd.value:null;if(action==='postponed'&&!newDate)return alert('La nouvelle date est obligatoire.');if(newEnd&&newEnd<newDate)return alert('La date de fin ne peut pas précéder la date de début.');
