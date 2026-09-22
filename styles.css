@@ -63,3 +63,15 @@ html.fi-booting #workspace:not(.hidden){visibility:hidden!important;opacity:0!im
 
 /* v223 — relances Reporting */
 .reporting-row-v223{gap:12px;align-items:center}.reporting-row-v223>label{display:flex;align-items:center;margin:0}.reporting-row-v223>label input{width:20px;height:20px;margin:0}.reporting-row-v223>.clickable{flex:1;min-width:0}.reporting-actions-v223{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.reporting-bulk-v223{display:flex;justify-content:flex-end;margin:12px 0}.reporting-bulk-v223 button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:640px){.reporting-row-v223{align-items:flex-start;flex-wrap:wrap}.reporting-row-v223>.clickable{flex:1}.reporting-actions-v223{width:100%;justify-content:flex-end;padding-left:32px}.reporting-bulk-v223 button{width:100%}}
+
+/* v264 — Agenda mobile: actions stay inside the programme card */
+.agenda-main-v195{min-width:0;flex:1 1 auto}
+.agenda-actions-v195{min-width:0;flex:0 1 auto}
+.agenda-exceptional-cancel{white-space:normal!important;line-height:1.15!important;text-align:center!important;min-width:0!important;max-width:180px!important;padding:7px 12px!important}
+@media(max-width:700px){
+  .agenda-row-v195{display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;gap:10px!important}
+  .agenda-row-v195 .agenda-main-v195{width:100%!important;flex:1 1 100%!important;min-width:0!important}
+  .agenda-row-v195 .agenda-actions-v195{width:100%!important;flex:1 1 100%!important;display:flex!important;justify-content:flex-start!important;align-items:stretch!important;gap:8px!important;min-width:0!important}
+  .agenda-row-v195 .agenda-actions-v195 .ghost{box-sizing:border-box;min-width:0;max-width:none}
+  .agenda-row-v195 .agenda-actions-v195 .agenda-exceptional-cancel{flex:1 1 150px;max-width:220px!important}
+}
