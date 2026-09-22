@@ -286,7 +286,7 @@
         const name = p ? [p.first_name,p.last_name].filter(Boolean).join(' ') : 'Personne';
         const label = v.visit_kind === 'visitor'
           ? 'Visiteur d’une autre FI/FIJ'
-          : (v.first_visit_this_family ? 'Nouveau dans cette FI' : 'Fréquentant');
+          : (v.first_visit_any_family ? 'Première visite FI' : (v.first_visit_this_family ? 'Première visite dans cette FI' : ''));
         const hint = v.source_family_id ? ' · Depuis '+esc(familyName(v.source_family_id)) : '';
         return '<div class="attendance-row"><div class="attendance-person"><span><b>'+esc(name)+' <span class="pill">'+esc(label)+'</span></b><small>'+esc(familyName(v.family_id))+hint+(v.arrival_time?' · Arrivée '+String(v.arrival_time).slice(0,5):'')+'</small></span></div></div>';
       }).join('');
@@ -344,13 +344,13 @@
           <div class="card" style="margin-bottom:16px">
             <div class="toolbar">
               <div>
-                <h3>Nouveaux, fréquentants & visiteurs</h3>
-                <p class="muted">Les personnes sans rattachement à cette FI et les visiteurs d’une autre FI/FIJ sont suivis séparément des membres.</p>
+                <h3>Nouveaux & visiteurs</h3>
+                <p class="muted">Les personnes en première visite et les visiteurs d’une autre FI/FIJ sont suivis séparément des membres.</p>
               </div>
               <button type="button" class="ghost" onclick="openExternalPresenceV12(${Number(id)})">Ajouter une personne</button>
             </div>
             <div class="attendance-list">
-              ${externalHtml || '<p class="muted">Aucun nouveau, fréquentant ou visiteur enregistré pour cette rencontre.</p>'}
+              ${externalHtml || '<p class="muted">Aucun nouveau ou visiteur enregistré pour cette rencontre.</p>'}
             </div>
           </div>` : '';
 
