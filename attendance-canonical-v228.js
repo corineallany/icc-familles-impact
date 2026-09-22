@@ -280,6 +280,11 @@
 
       const html = rows.map(({m,a,arrival,late}) => {
         const unknown = !!a?.arrival_unknown;
+        const fid = kind === 'meeting' ? Number(item.family_id) : memberFamily(m.id);
+        const tmp = typeof temporaryTransferDisplay === 'function' ? temporaryTransferDisplay(fid,m.id) : null;
+        const perm = typeof permanentTransferDisplay === 'function' ? permanentTransferDisplay(fid,m.id) : null;
+        const transferLabel = tmp ? '<span class="pill">Affectation temporaire</span>' : perm ? '<span class="pill">Transfert définitif</span>' : '';
+        const transferHint = tmp ? ' · Depuis '+esc(familyName(tmp.from_family_id)) : perm ? ' · Ancienne FI : '+esc(familyName(perm.movement.from_family_id)) : '';
         return `
           <div class="attendance-row">
             <label class="attendance-person">
@@ -288,8 +293,8 @@
                 data-member="${m.id}"
                 ${a?.present ? 'checked' : ''}>
               <span>
-                <b>${esc(memberName(m.id))}</b>
-                <small>${esc(familyName(memberFamily(m.id)))}</small>
+                <b>${esc(memberName(m.id))} ${transferLabel}</b>
+                <small>${esc(familyName(fid))}${transferHint}</small>
               </span>
             </label>
             <div class="attendance-arrival">
