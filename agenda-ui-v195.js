@@ -21,7 +21,7 @@ function editGlobalOccurrenceV199(tid,date){
   const pretty=new Date(date+'T12:00').toLocaleDateString('fr-FR');
   modalForm('Modifier cette rencontre',`
     <p class="muted">Personnalisez uniquement cette rencontre. La date reste fixe ; le modèle hebdomadaire reste inchangé.</p>
-    <label>Date <span class="muted">(non modifiable)</span><input class="locked-date" type="date" value="${date}" disabled aria-disabled="true"></label>
+    <label>Date <span class="muted">(non modifiable)</span><input class="locked-date" type="date" value="${date}" disabled aria-disabled="true" style="background:#f1f1f1;color:#777;cursor:not-allowed;"></label>
     <label>Titre<input id="goTitleV199" value="${esc(currentTitle)}"></label>
     <label>Thème<input id="goThemeV199" value="${esc(currentTheme)}" placeholder="Thème de cette rencontre"></label>
     <label>Précisions et orientations<textarea id="goReasonV199" rows="3" placeholder="Précisions utiles, orientations, consignes particulières...">${esc(currentDetails)}</textarea></label>
