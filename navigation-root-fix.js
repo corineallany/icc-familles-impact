@@ -44,6 +44,7 @@
       if(fiNavHistory.length>30)fiNavHistory.shift();
     }
     current=page;
+    if(typeof setPageHash==='function')setPageHash(page);
     if(typeof closeModal==='function')closeModal();
     renderRoot();
     document.body.classList.remove('fi-mobile-nav-open');
