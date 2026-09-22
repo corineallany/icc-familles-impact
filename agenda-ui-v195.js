@@ -18,10 +18,9 @@ function editGlobalOccurrenceV199(tid,date){
   const start=ed?.new_start?new Date(ed.new_start).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):(mat?.planned_start?new Date(mat.planned_start).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):(v.start_time||'').slice(0,5));
   const end=ed?.new_end?new Date(ed.new_end).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):(mat?.planned_end?new Date(mat.planned_end).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):(v.end_time||'').slice(0,5));
   const online=ed?.is_online===true||(!ed&&mat?.is_online===true);
-  const pretty=new Date(date+'T12:00').toLocaleDateString('fr-FR');
   modalForm('Modifier cette rencontre',`
     <p class="muted">Personnalisez uniquement cette rencontre. La date reste fixe ; le modèle hebdomadaire reste inchangé.</p>
-    <label>Date <span class="muted">(non modifiable)</span><input class="locked-date" type="date" value="${date}" disabled aria-disabled="true" style="background:#f1f1f1;color:#777;cursor:not-allowed;"></label>
+    <label>Date<input class="locked-date" type="date" value="${date}" disabled aria-disabled="true" style="background:#f1f1f1;color:#777;cursor:not-allowed;"><small class="muted" style="display:block;font-style:italic;margin-top:4px;">Date non modifiable ici. Pour changer la date, utilisez « Reporter ».</small></label>
     <label>Titre<input id="goTitleV199" value="${esc(currentTitle)}"></label>
     <label>Thème<input id="goThemeV199" value="${esc(currentTheme)}" placeholder="Thème de cette rencontre"></label>
     <label>Précisions et orientations<textarea id="goReasonV199" rows="3" placeholder="Précisions utiles, orientations, consignes particulières...">${esc(currentDetails)}</textarea></label>
