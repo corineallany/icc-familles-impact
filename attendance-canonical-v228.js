@@ -278,6 +278,19 @@
         kind === 'meeting' && item.family_id ? familyName(item.family_id) : ''
       ].filter(Boolean).join(' · ');
 
+      const externalVisits = kind === 'meeting'
+        ? (db.visitLog||[]).filter(v => Number(v.meeting_id) === Number(id))
+        : [];
+      const externalHtml = externalVisits.map(v => {
+        const p = (db.people||[]).find(x => Number(x.id) === Number(v.person_id));
+        const name = p ? [p.first_name,p.last_name].filter(Boolean).join(' ') : 'Personne';
+        const label = v.visit_kind === 'visitor'
+          ? 'Visiteur d’une autre FI/FIJ'
+          : (v.first_visit_this_family ? 'Nouveau dans cette FI' : 'Fréquentant');
+        const hint = v.source_family_id ? ' · Depuis '+esc(familyName(v.source_family_id)) : '';
+        return '<div class="attendance-row"><div class="attendance-person"><span><b>'+esc(name)+' <span class="pill">'+esc(label)+'</span></b><small>'+esc(familyName(v.family_id))+hint+(v.arrival_time?' · Arrivée '+String(v.arrival_time).slice(0,5):'')+'</small></span></div></div>';
+      }).join('');
+      
       const html = rows.map(({m,a,arrival,late}) => {
         const unknown = !!a?.arrival_unknown;
         const fid = kind === 'meeting' ? Number(item.family_id) : memberFamily(m.id);
@@ -327,8 +340,21 @@
           </div>`;
       }).join('');
 
+      const externalSection = kind === 'meeting' ? `
+          <div class="card" style="margin-bottom:16px">
+            <div class="toolbar">
+              <div>
+                <h3>Nouveaux, fréquentants & visiteurs</h3>
+                <p class="muted">Les personnes sans rattachement à cette FI et les visiteurs d’une autre FI/FIJ sont suivis séparément des membres.</p>
+              </div>
+              <button type="button" class="ghost" onclick="openExternalPresenceV12(${Number(id)})">Ajouter une personne</button>
+            </div>
+            <div class="attendance-list">
+              ${externalHtml || '<p class="muted">Aucun nouveau, fréquentant ou visiteur enregistré pour cette rencontre.</p>'}
+            </div>
+          </div>` : '';
+
       modal.innerHTML = `
-        <div class="modal-card wide reporting-sheet">
           <button class="close" onclick="closeModal()">×</button>
           <p class="eyebrow">GESTION DES PRÉSENCES</p>
           <h2>${esc(title)}</h2>
@@ -338,8 +364,12 @@
             Cette fiche est le point d’entrée unique des présences.
             Cochez les personnes présentes et renseignez l’heure d’arrivée si elle est connue.
           </p>
-          <div class="attendance-list">
-            ${html || '<p class="muted">Aucune personne dans votre périmètre.</p>'}
+          ${externalSection}
+          <div class="card">
+            <h3>Membres de la FI</h3>
+            <div class="attendance-list">
+              ${html || '<p class="muted">Aucune personne dans votre périmètre.</p>'}
+            </div>
           </div>
           <div class="row-actions">
             <button type="button" class="ghost" onclick="closeModal()">Annuler</button>
