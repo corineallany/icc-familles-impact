@@ -34,7 +34,7 @@ function agendaPhase(start,end,status,startTime,endTime){
 }
 function phaseTabs(value,setter,pluralF){
   const labs=pluralF?[['past','Passées'],['current','En cours'],['upcoming','À venir']]:[['past','Passés'],['current','En cours'],['upcoming','À venir']];
-  return '<div class="meeting-subtabs-v180" role="tablist">'+labs.map(([v,l])=>'<button type="button" role="tab" aria-selected="'+(value===v?'true':'false')+'" class="'+(value===v?'active':'')+'" onclick="event.preventDefault();event.stopPropagation();'+setter+'(\\\''+v+'\\\')">'+l+'</button>').join('')+'</div>';
+  return '<div class="meeting-subtabs-v180" role="tablist">'+labs.map(([v,l])=>'<button type="button" role="tab" aria-selected="'+(value===v?'true':'false')+'" class="'+(value===v?'active':'')+'" onclick="event.preventDefault();event.stopPropagation();'+setter+'(\\''+v+'\\')">'+l+'</button>').join('')+'</div>';
 }
 function periodSelect(value,setter,week=true){
   const opts=(week?[['week','Semaine']]:[]).concat([['month','Mois'],['quarter','Trimestre'],['semester','Semestre'],['season','Saison FI'],['year','Année'],['all','Tout']]);
