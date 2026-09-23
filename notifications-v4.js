@@ -45,3 +45,71 @@ const _renderNotificationCenterV5=render;render=function(){const out=_renderNoti
 let notificationRealtimeV5=null;
 function subscribeNotificationRealtimeV5(){if(notificationRealtimeV5||!profile?.member?.id)return;notificationRealtimeV5=sb.channel('my-notifications-'+profile.member.id).on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:'member_id=eq.'+profile.member.id},async()=>{await loadData();render()}).subscribe()}
 const _bootNotificationsV5=boot;boot=async function(){const out=await _bootNotificationsV5();try{subscribeNotificationRealtimeV5()}catch(e){console.warn('notification realtime',e)}return out}
+
+
+/* v6 — notifications contextualisées : fiche complète de rencontre + navigation depuis le Push */
+function notificationMeetingInfoV6(meetingId,payload){
+  let m=meetingId?db.meetings.find(x=>+x.id===+meetingId):null;
+  let virtual=null;
+  if(!m && payload?.family_id && payload?.date){
+    const t=payload.template_version_id?db.templates.find(x=>+x.id===+payload.template_version_id):null;
+    const v=payload.template_version_id?db.versions.find(x=>+x.id===+payload.template_version_id):null;
+    if(v||t) virtual={id:null,family_id:+payload.family_id,title:v?.title||t?.name||'Rencontre FI/FIJ',scheduled_date:payload.date,planned_start:v?.start_time?payload.date+'T'+String(v.start_time).slice(0,8):null,planned_end:v?.end_time?payload.date+'T'+String(v.end_time).slice(0,8):null,theme:null,theme_description:null,is_online:false,reporting_required:v?.reporting_required!==false,status:'scheduled'};
+  }
+  return m||virtual;
+}
+function openNotificationMeetingV6(meetingId,payload){
+  const m=notificationMeetingInfoV6(meetingId,payload);
+  if(!m)return alert('Cette rencontre n’est plus disponible.');
+  const start=m.planned_start?new Date(m.planned_start).toLocaleString('fr-FR',{dateStyle:'full',timeStyle:'short'}):new Date(m.scheduled_date+'T12:00').toLocaleDateString('fr-FR',{dateStyle:'full'});
+  const end=m.planned_end?new Date(m.planned_end).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+  const status=typeof statusLabel==='function'?statusLabel(m.status):m.status||'Prévue';
+  const isVirtual=!m.id;
+  modal.innerHTML='<div class="modal-card notification-meeting-v6"><button class="close" onclick="closeModal()">×</button>'+
+    '<p class="eyebrow">FICHE DE LA RENCONTRE</p>'+
+    '<h2>'+esc(m.title||'Rencontre')+'</h2>'+
+    '<div class="notification-meeting-meta-v6">'+
+      '<div><span>FI / FIJ</span><b>'+esc(familyName(m.family_id))+'</b></div>'+
+      '<div><span>Date et heure</span><b>'+esc(start)+(end?' → '+esc(end):'')+'</b></div>'+
+      '<div><span>Thème</span><b>'+esc(m.theme||'Non renseigné')+'</b></div>'+
+      '<div><span>Format</span><b>'+(m.is_online?'En ligne':'En présentiel')+'</b></div>'+
+      '<div><span>Statut</span><b>'+esc(status)+'</b></div>'+
+      '<div><span>Reporting</span><b>'+(m.reporting_required===false?'Non requis':'Requis')+'</b></div>'+
+    '</div>'+
+    (m.theme_description?'<div class="notification-meeting-note-v6"><b>Précisions</b><p>'+esc(m.theme_description)+'</p></div>':'')+
+    '<div class="row-actions">'+
+      (m.id?'<button class="primary" onclick="closeModal();openMeeting('+m.id+')">Ouvrir la rencontre</button>':'<button class="primary" onclick="closeModal();go(\'Rencontres\')">Voir les rencontres</button>')+
+      (m.id?'<button class="ghost" onclick="closeModal();openAttendance(\'meeting\','+m.id+')">Gérer les présences</button>':'')+
+      (m.id&&m.reporting_required!==false?'<button class="ghost" onclick="closeModal();openReporting('+m.id+')">Ouvrir le Reporting</button>':'')+
+    '</div></div>';
+  modal.classList.remove('hidden');
+}
+function openNotificationTarget(n){
+  if(n.action_key==='open_reporting'&&n.target_id)return openReporting(n.target_id);
+  if(n.action_key==='open_meeting')return openNotificationMeetingV6(n.target_id,n.action_payload||{});
+  if(n.action_key==='open_meetings')return openNotificationMeetingV6(null,n.action_payload||{});
+  if(n.action_key==='open_followup'){go('Pilotage');setTimeout(()=>openFollowupPilotage(n.action_payload?.followup_id),80);return}
+  if(n.target_module&&allowedItems().includes(n.target_module))go(n.target_module);
+}
+async function openNotificationDetailV5(id){
+  const n=(db.notifications||[]).find(x=>+x.id===+id);if(!n)return;
+  if(!n.read_at&&!n.deleted_at){const now=new Date().toISOString();await sb.from('notifications').update({read_at:now}).eq('id',id);n.read_at=now}
+  const meetingTarget=n.category?.startsWith('meeting.')||n.action_key==='open_meeting'||n.action_key==='open_meetings';
+  modal.innerHTML='<div class="modal-card notification-detail-v5"><button class="close" onclick="closeModal()">×</button><p class="eyebrow">NOTIFICATION</p><h2>'+esc(n.title||'Notification')+'</h2><p class="muted">'+notificationDateV5(n.created_at)+'</p><div class="notification-detail-body-v5">'+esc(n.body||'').replace(/\n/g,'<br>')+'</div><div class="row-actions">'+
+    (meetingTarget?'<button class="primary" onclick="openNotificationTarget('+JSON.stringify(n).replace(/"/g,'&quot;')+')">Ouvrir la fiche de la rencontre</button>':'')+
+    (n.deleted_at?'<button class="ghost" onclick="notificationRestoreV5('+n.id+')">Restaurer</button><button class="ghost danger" onclick="notificationPermanentDeleteV5('+n.id+')">Supprimer définitivement</button>':'<button class="ghost" onclick="closeModal();openNotificationCenterV5(\''+notificationCenterTabV5+'\')">Retour</button>')+
+    '</div></div>';
+  modal.classList.remove('hidden');
+}
+function handleNotificationNavigationV6(){
+  const q=new URLSearchParams(location.search);
+  const action=q.get('notification_action');
+  if(!action)return;
+  const targetId=q.get('target_id')||null;
+  let payload={};
+  try{payload=JSON.parse(q.get('notification_payload')||'{}')}catch{}
+  const n={action_key:action,target_id:targetId?Number(targetId):null,action_payload:payload,target_module:action.startsWith('open_')?'Rencontres':null};
+  setTimeout(()=>openNotificationTarget(n),250);
+  const u=new URL(location.href);u.searchParams.delete('notification_action');u.searchParams.delete('target_id');u.searchParams.delete('notification_payload');history.replaceState({},'',u.pathname+(u.search?u.search:'')+u.hash);
+}
+const _bootNotificationsV6=boot;boot=async function(){const out=await _bootNotificationsV6();try{handleNotificationNavigationV6()}catch(e){console.warn('notification navigation',e)}return out};
