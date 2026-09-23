@@ -1,4 +1,4 @@
-const CACHE='fi-v246';
+const CACHE='fi-v247';
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch{d={body:e.data?.text()||''}};const title=d.title||'FI — ICC Le Mans';e.waitUntil(self.registration.showNotification(title,{body:d.body||'',icon:'fi-le-mans-icon-192.png',badge:'fi-le-mans-icon-192.png',data:d.data||{},tag:d.tag||undefined,renotify:Boolean(d.tag)}))});
