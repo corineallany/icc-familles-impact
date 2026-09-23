@@ -51,10 +51,15 @@ const _bootNotificationsV5=boot;boot=async function(){const out=await _bootNotif
 function notificationMeetingInfoV6(meetingId,payload){
   let m=meetingId?db.meetings.find(x=>+x.id===+meetingId):null;
   let virtual=null;
+  if(m){
+    const change=(db.changes||[]).filter(c=>+c.template_version_id===+(m.template_version_id||0)&&c.old_date===(m.original_scheduled_date||m.scheduled_date)&&c.action==='modified').sort((a,b)=>String(b.changed_at||'').localeCompare(String(a.changed_at||'')))[0];
+    m={...m,title:change?.new_title||m.title,theme:m.theme||change?.new_theme||null,theme_description:m.theme_description||change?.new_theme_description||null};
+  }
   if(!m && payload?.family_id && payload?.date){
-    const t=payload.template_version_id?db.templates.find(x=>+x.id===+payload.template_version_id):null;
     const v=payload.template_version_id?db.versions.find(x=>+x.id===+payload.template_version_id):null;
-    if(v||t) virtual={id:null,family_id:+payload.family_id,title:v?.title||t?.name||'Rencontre FI/FIJ',scheduled_date:payload.date,planned_start:v?.start_time?payload.date+'T'+String(v.start_time).slice(0,8):null,planned_end:v?.end_time?payload.date+'T'+String(v.end_time).slice(0,8):null,theme:null,theme_description:null,is_online:false,reporting_required:v?.reporting_required!==false,status:'scheduled'};
+    const t=v?db.templates.find(x=>+x.id===+v.template_id):null;
+    const change=(db.changes||[]).filter(c=>+c.template_version_id===+(payload.template_version_id||0)&&c.old_date===payload.date&&c.action==='modified').sort((a,b)=>String(b.changed_at||'').localeCompare(String(a.changed_at||'')))[0];
+    if(v||t) virtual={id:null,family_id:+payload.family_id,title:change?.new_title||v?.title||t?.name||'Rencontre FI/FIJ',scheduled_date:payload.date,planned_start:v?.start_time?payload.date+'T'+String(v.start_time).slice(0,8):null,planned_end:v?.end_time?payload.date+'T'+String(v.end_time).slice(0,8):null,theme:change?.new_theme||null,theme_description:change?.new_theme_description||null,is_online:false,reporting_required:v?.reporting_required!==false,status:'scheduled'};
   }
   return m||virtual;
 }
