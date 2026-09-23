@@ -91,12 +91,13 @@ function openNotificationTarget(n){
   if(n.action_key==='open_followup'){go('Pilotage');setTimeout(()=>openFollowupPilotage(n.action_payload?.followup_id),80);return}
   if(n.target_module&&allowedItems().includes(n.target_module))go(n.target_module);
 }
+function openNotificationTargetByIdV6(id){const n=(db.notifications||[]).find(x=>+x.id===+id);if(n)openNotificationTarget(n);}
 async function openNotificationDetailV5(id){
   const n=(db.notifications||[]).find(x=>+x.id===+id);if(!n)return;
   if(!n.read_at&&!n.deleted_at){const now=new Date().toISOString();await sb.from('notifications').update({read_at:now}).eq('id',id);n.read_at=now}
   const meetingTarget=n.category?.startsWith('meeting.')||n.action_key==='open_meeting'||n.action_key==='open_meetings';
   modal.innerHTML='<div class="modal-card notification-detail-v5"><button class="close" onclick="closeModal()">×</button><p class="eyebrow">NOTIFICATION</p><h2>'+esc(n.title||'Notification')+'</h2><p class="muted">'+notificationDateV5(n.created_at)+'</p><div class="notification-detail-body-v5">'+esc(n.body||'').replace(/\n/g,'<br>')+'</div><div class="row-actions">'+
-    (meetingTarget?'<button class="primary" onclick="openNotificationTarget('+JSON.stringify(n).replace(/"/g,'&quot;')+')">Ouvrir la fiche de la rencontre</button>':'')+
+    (meetingTarget?'<button class="primary" onclick="openNotificationTargetByIdV6('+n.id+')">Ouvrir la fiche de la rencontre</button>':'')+
     (n.deleted_at?'<button class="ghost" onclick="notificationRestoreV5('+n.id+')">Restaurer</button><button class="ghost danger" onclick="notificationPermanentDeleteV5('+n.id+')">Supprimer définitivement</button>':'<button class="ghost" onclick="closeModal();openNotificationCenterV5(\''+notificationCenterTabV5+'\')">Retour</button>')+
     '</div></div>';
   modal.classList.remove('hidden');
