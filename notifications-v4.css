@@ -16,3 +16,24 @@
 .notification-tabs-v5 button{padding:7px 5px!important;font-size:11px!important}
 .notification-list-v5{margin-top:4px}
 @media(max-width:520px){.notification-center-v5{width:calc(100vw - 20px)!important;height:min(540px,88vh);padding:20px!important}.notification-tabs-v5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* v6 — appareil Push et fiche rencontre lisibles sur mobile */
+.push-device-row-v4{align-items:flex-start}
+.push-device-actions-v4{display:grid;grid-template-columns:auto minmax(130px,1fr) minmax(78px,1fr);gap:8px;align-items:center;min-width:min(100%,380px)}
+.push-device-actions-v4 .pill{justify-self:start;white-space:nowrap}
+.push-device-actions-v4 button{min-width:0!important;width:100%;padding:0 10px!important;font-size:12px!important;white-space:nowrap!important}
+.notification-meeting-v6{width:min(650px,calc(100vw - 32px));max-width:650px}
+.notification-meeting-meta-v6{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.notification-meeting-meta-v6>div{border:1px solid #edf0f4;border-radius:12px;padding:12px;background:#fafbfc}
+.notification-meeting-meta-v6 span{display:block;font-size:11px;color:#7b8496;margin-bottom:4px}
+.notification-meeting-meta-v6 b{font-size:13px;line-height:1.35}
+.notification-meeting-note-v6{border-left:3px solid #dfe5ef;padding:4px 0 4px 12px;margin:8px 0 18px}
+.notification-meeting-note-v6 p{margin:5px 0;line-height:1.5;color:#475569}
+@media(max-width:700px){
+  .push-device-row-v4{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+  .push-device-actions-v4{width:100%;min-width:0;grid-template-columns:1fr 1fr}
+  .push-device-actions-v4 .pill{grid-column:1/-1}
+  .push-device-actions-v4 button{height:44px!important;min-height:44px!important}
+  .notification-meeting-meta-v6{grid-template-columns:1fr}
+  .notification-meeting-v6 .row-actions{grid-template-columns:1fr}
+}
